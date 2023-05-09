@@ -1,14 +1,22 @@
 /* eslint-disable react-native/no-inline-styles */
 import {Config, Builder, Node} from 'ldk-node-rn';
 import React, {useState} from 'react';
-import {ActivityIndicator, Button, Text, TextInput, View} from 'react-native';
+import {
+  ActivityIndicator,
+  Button,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import RNFS from 'react-native-fs';
 
 let docDir = RNFS.DocumentDirectoryPath;
+let host = '192.168.8.100';
 
 let connectConfig = {
-  pubkey: '02e72b0c13bccb21847bbcbe6f883668bd5a1928eb1ae7efefb8ad97b775ecdaf3',
-  address: '127.0.0.1:9735',
+  pubkey: '03b459b7b71ae0d3f68233631b9eb282879f35c246b5cd7d2dc23bad3311b2b2ff',
+  address: `${host}:9735`,
   permanently: false,
 };
 
@@ -20,15 +28,17 @@ const App = (): JSX.Element => {
   const [started, _started] = useState<boolean>(false);
 
   const startLdk = async () => {
+    console.log('START()');
     _loading(true);
     try {
       const config = await new Config().create(
         docDir,
-        'http://127.0.0.1:30000',
+        `http://${host}:30000`,
         'regtest',
-        '0.0.0.0:9735',
+        '',
         144,
       );
+      console.log(config);
 
       const builder = await new Builder().fromConfig(config);
       const nodeObj: Node = await builder.build();
@@ -49,6 +59,7 @@ const App = (): JSX.Element => {
   };
 
   const connectPeer = async () => {
+    console.log('ConnectPeer()');
     _loading(true);
     try {
       let connected = await node?.connect(
@@ -64,6 +75,7 @@ const App = (): JSX.Element => {
   };
 
   const sync = async () => {
+    console.log('SYNC()');
     _loading(true);
     try {
       console.log('Synced:', await node?.syncWallets());
@@ -76,20 +88,16 @@ const App = (): JSX.Element => {
     _loading(false);
   };
 
-  const invoinceAndBalance = async () => {
+  const invoiceAndBalance = async () => {
+    console.log('invoiceAndBalance()');
     _loading(true);
     try {
-      let invoice = await node?.receivePayment(10001, 'Test invoice', 1000);
-      console.log('Invoice created', invoice);
-
-      let openendChannel = await node?.connectOpenChannel(
-        connectConfig.pubkey,
-        connectConfig.address,
-        20000,
-        150,
-        connectConfig.permanently,
+      let invoice = await node?.receivePayment(
+        10001,
+        'Testing invoice from Android',
+        1000,
       );
-      console.log('Openend Channel:', openendChannel);
+      console.log('Invoice created', invoice);
 
       let address = await node?.newFundingAddress();
       console.log('Address:', address);
@@ -100,6 +108,15 @@ const App = (): JSX.Element => {
       let totalBalance = await node?.totalOnchainBalanceSats();
       console.log('Total Balance:', totalBalance);
 
+      let openendChannel = await node?.connectOpenChannel(
+        connectConfig.pubkey,
+        connectConfig.address,
+        20000,
+        150,
+        connectConfig.permanently,
+      );
+      console.log('Openend Channel:', openendChannel);
+
       // let stopped = await node?.stop();
       // console.log('Stopped:', stopped);
     } catch (e) {
@@ -108,8 +125,11 @@ const App = (): JSX.Element => {
     _loading(false);
   };
 
-  const [invoice, _invoice] = useState('');
+  const [invoice, _invoice] = useState(
+    'lnbcrt10u1pjxx0mxpp58clwkea8s7jm4yypqd4t9mdxee9fkfz78ww7e3mlha485y9w7g5sdqqcqzzsxqyz5vqsp5x2f6tt4wy40fs7xxtx9j0y7vsqhrceyy5j790v36eqnq5trkmxys9qyyssqkayl4h09xuzjshcdj0exwgta4du2gw600j48ufu50lutyu4f5a5kp7l4k7etr2v8h88qx8xy38un9t7ywrgrlcwafrdmts2k3329u4spp7gkuq',
+  );
   const send = async () => {
+    console.log('SEND()');
     _loading(true);
     try {
       let res = await node?.sendPayment(invoice);
@@ -123,43 +143,49 @@ const App = (): JSX.Element => {
     <View style={{justifyContent: 'center', alignItems: 'center', flex: 1}}>
       <Button
         title="Start LDK Node"
-        onPress={() => !started && startLdk()}
+        onPress={() => !loading && startLdk()}
         color={started ? 'gray' : 'green'}
       />
-
+      <Margin />
       <Button
         title="ConnectPeer"
         onPress={() => !loading && connectPeer()}
         color={loading ? 'gray' : 'green'}
       />
-
+      <Margin />
       <Button
         title="Sync"
         onPress={() => !loading && sync()}
         color={loading ? 'gray' : 'green'}
       />
-
+      <Margin />
       <Button
         title="Invoice and balance"
-        onPress={() => !loading && invoinceAndBalance()}
+        onPress={() => !loading && invoiceAndBalance()}
         color={loading ? 'gray' : 'green'}
       />
-
+      <Margin />
       {loading && <ActivityIndicator />}
       <TextInput
         value={invoice}
         onChangeText={_invoice}
         style={{borderWidth: 2, width: 300, paddingVertical: 15}}
       />
+      <Margin />
       <Button
         title="Send"
         onPress={() => !loading && send()}
         color={loading ? 'gray' : 'green'}
       />
+      <Margin />
       <Text selectable>{response}</Text>
       <Text selectable>{invoice}</Text>
     </View>
   );
+};
+
+const Margin = () => {
+  return <View style={{marginVertical: 10}} />;
 };
 
 export default App;

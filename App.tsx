@@ -1,21 +1,15 @@
 /* eslint-disable react-native/no-inline-styles */
-import {Config, Builder, Node} from 'ldk-node-rn';
+import {Config, Builder, Node} from 'ldk-node';
+import {PublicKey, SocketAddr} from 'ldk-node/lib/classes/Bindings';
 import React, {useState} from 'react';
-import {
-  ActivityIndicator,
-  Button,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import {ActivityIndicator, Button, Text, TextInput, View} from 'react-native';
 import RNFS from 'react-native-fs';
 
 let docDir = RNFS.DocumentDirectoryPath;
 let host = '192.168.8.100';
 
 let connectConfig = {
-  pubkey: '03b459b7b71ae0d3f68233631b9eb282879f35c246b5cd7d2dc23bad3311b2b2ff',
+  pubkey: '020682c6d7fb645d8589bbe86e483efe14fd82a4c0982ceb6699df805a80215b4e',
   address: `${host}:9735`,
   permanently: false,
 };
@@ -35,7 +29,7 @@ const App = (): JSX.Element => {
         docDir,
         `http://${host}:30000`,
         'regtest',
-        '',
+        null,
         144,
       );
       console.log(config);
@@ -48,10 +42,10 @@ const App = (): JSX.Element => {
       console.log('Node started:', st);
 
       let nodeId = await nodeObj?.nodeId();
-      console.log('nodeId:', nodeId);
-      _response(nodeId);
+      console.log('nodeId:', nodeId.keyHex);
+      _response(nodeId.keyHex);
 
-      console.log('Synced:', await nodeObj?.syncWallets());
+      // console.log('Synced:', await nodeObj?.syncWallets());
     } catch (e) {
       console.log('ERROR=====>', e);
     }
@@ -80,8 +74,7 @@ const App = (): JSX.Element => {
     try {
       console.log('Synced:', await node?.syncWallets());
       let nodeId = await node?.nodeId();
-      _response(nodeId);
-      console.log('nodeId:', nodeId);
+      console.log('NodeId:', nodeId);
     } catch (e) {
       console.log('ERROR=====>', e);
     }
@@ -100,7 +93,7 @@ const App = (): JSX.Element => {
       console.log('Invoice created', invoice);
 
       let address = await node?.newFundingAddress();
-      console.log('Address:', address);
+      console.log('Address:', address?.addressHex);
 
       let balance = await node?.spendableOnchainBalanceSats();
       console.log('Spendable Balance:', balance);
@@ -125,14 +118,27 @@ const App = (): JSX.Element => {
     _loading(false);
   };
 
-  const [invoice, _invoice] = useState(
-    'lnbcrt10u1pjxx0mxpp58clwkea8s7jm4yypqd4t9mdxee9fkfz78ww7e3mlha485y9w7g5sdqqcqzzsxqyz5vqsp5x2f6tt4wy40fs7xxtx9j0y7vsqhrceyy5j790v36eqnq5trkmxys9qyyssqkayl4h09xuzjshcdj0exwgta4du2gw600j48ufu50lutyu4f5a5kp7l4k7etr2v8h88qx8xy38un9t7ywrgrlcwafrdmts2k3329u4spp7gkuq',
-  );
+  const listPeers = async () => {
+    const peers = await node?.listPeers();
+    console.log(peers);
+  };
+
+  const listChannels = async () => {
+    const channels = await node?.listChannels();
+    console.log(channels);
+  };
+
+  const [invoice, _invoice] = useState('');
   const send = async () => {
     console.log('SEND()');
     _loading(true);
     try {
-      let res = await node?.sendPayment(invoice);
+      // let res = await node?.sendPayment(invoice);
+      let res = await node?.sendPaymentUsingAmount(invoice, 2000);
+      // let res = await node?.sendSpontaneousPayment(
+      //   1500,
+      //   new PublicKey(connectConfig.pubkey),
+      // );
       console.log('Send', res);
     } catch (e) {
       console.log('Send error', e);
@@ -162,6 +168,18 @@ const App = (): JSX.Element => {
       <Button
         title="Invoice and balance"
         onPress={() => !loading && invoiceAndBalance()}
+        color={loading ? 'gray' : 'green'}
+      />
+      <Margin />
+      <Button
+        title="List Peers"
+        onPress={() => !loading && listPeers()}
+        color={loading ? 'gray' : 'green'}
+      />
+      <Margin />
+      <Button
+        title="List Channels"
+        onPress={() => !loading && listChannels()}
         color={loading ? 'gray' : 'green'}
       />
       <Margin />

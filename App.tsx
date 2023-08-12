@@ -1,18 +1,31 @@
-/* eslint-disable react-native/no-inline-styles */
-import {Config, Builder, Node} from 'ldk-node';
-import {PublicKey, SocketAddr} from 'ldk-node/lib/classes/Bindings';
-import React, {useState} from 'react';
 import {ActivityIndicator, Button, Text, TextInput, View} from 'react-native';
+import {
+  Address,
+  ChannelId,
+  NetAddress,
+  PaymentHash,
+  PublicKey,
+} from 'ldk-node/lib/classes/Bindings';
+import {Builder, Config, Node} from 'ldk-node';
+import React, {useState} from 'react';
+
 import RNFS from 'react-native-fs';
 
-let docDir = RNFS.DocumentDirectoryPath;
-let host = '192.168.8.100';
+let docDir = RNFS.DocumentDirectoryPath + '/';
+let host = 'http://192.168.8.100';
+let port = 30000;
+let esploaraServer = new NetAddress(host, port);
+console.log('DOCUMENT DIRECTORY===>', docDir);
 
 let connectConfig = {
-  pubkey: '020682c6d7fb645d8589bbe86e483efe14fd82a4c0982ceb6699df805a80215b4e',
+  pubkey: '03bc9ca485a5e09460bcac68fb7edbc727f54beeb48e468d0c74ce25fd5b0dab15',
   address: `${host}:9735`,
-  permanently: false,
+  persist: false,
 };
+
+let bytesArr = Array.from({length: 64}, () => Math.floor(Math.random() * 100));
+let mnemonicString =
+  'cream ecology sniff amazing awful ocean gaze can peanut abandon emotion affair';
 
 const App = (): JSX.Element => {
   const [loading, _loading] = useState(false);
@@ -25,27 +38,29 @@ const App = (): JSX.Element => {
     console.log('START()');
     _loading(true);
     try {
-      const config = await new Config().create(
-        docDir,
-        `http://${host}:30000`,
-        'regtest',
-        null,
-        144,
-      );
-      console.log(config);
-
+      const config = await new Config().create(docDir, 'regtest', null, 144);
       const builder = await new Builder().fromConfig(config);
+
+      await builder.setEsploraServer(esploaraServer);
+      // await builder.setEntropySeedPath(docDir + 'seed.txt');
+      // await builder.setEntropySeedBytes(bytesArr);
+      // await builder.setEntropyBip39Mnemonic(mnemonicString);
+      // await builder.setGossipSourceP2p();
+      // await builder.setGossipSourceRgs(esploaraServer);
+      // await builder.setStorageDirPath(docDir + 'wallet.txt');
+      // await builder.setNetwork('regtest');
+      // await builder.setListeningAddress(new NetAddress('127.0.0.1', 80));
       const nodeObj: Node = await builder.build();
       _node(nodeObj);
+
       const st = await nodeObj.start();
+
       _started(st);
       console.log('Node started:', st);
 
       let nodeId = await nodeObj?.nodeId();
       console.log('nodeId:', nodeId.keyHex);
       _response(nodeId.keyHex);
-
-      // console.log('Synced:', await nodeObj?.syncWallets());
     } catch (e) {
       console.log('ERROR=====>', e);
     }
@@ -59,7 +74,7 @@ const App = (): JSX.Element => {
       let connected = await node?.connect(
         connectConfig.pubkey,
         connectConfig.address,
-        connectConfig.permanently,
+        connectConfig.persist,
       );
       console.log('Connected:', connected);
     } catch (e) {
@@ -81,18 +96,11 @@ const App = (): JSX.Element => {
     _loading(false);
   };
 
-  const invoiceAndBalance = async () => {
+  const getBalance = async () => {
     console.log('invoiceAndBalance()');
     _loading(true);
     try {
-      let invoice = await node?.receivePayment(
-        10001,
-        'Testing invoice from Android',
-        1000,
-      );
-      console.log('Invoice created', invoice);
-
-      let address = await node?.newFundingAddress();
+      let address = await node?.newOnchainAddress();
       console.log('Address:', address?.addressHex);
 
       let balance = await node?.spendableOnchainBalanceSats();
@@ -101,17 +109,63 @@ const App = (): JSX.Element => {
       let totalBalance = await node?.totalOnchainBalanceSats();
       console.log('Total Balance:', totalBalance);
 
+      // let stopped = await node?.stop();
+      // console.log('Stopped:', stopped);
+    } catch (e) {
+      console.log('ERROR=====>', e);
+    }
+    _loading(false);
+  };
+
+  const openChannel = async () => {
+    console.log('OpenChannel()');
+    _loading(true);
+    try {
       let openendChannel = await node?.connectOpenChannel(
         connectConfig.pubkey,
         connectConfig.address,
         20000,
         150,
-        connectConfig.permanently,
+        connectConfig.persist,
       );
       console.log('Openend Channel:', openendChannel);
+    } catch (e) {
+      console.log('ERROR=====>', e);
+    }
+    _loading(false);
+  };
 
-      // let stopped = await node?.stop();
-      // console.log('Stopped:', stopped);
+  const closeChannel = async () => {
+    _loading(true);
+    try {
+      let closed = await node?.closeChannel(
+        new ChannelId(
+          '2d98ebe60571ef9a13d592af96ebacaef0ad68e10c1e1e9832880af603a89dfb',
+        ),
+        new PublicKey(
+          '02ad94ac26d5b35f23bec4e27044f08c3ec06f4b25f9b4924a8a1130d862efa52a',
+        ),
+      );
+      console.log('Channel closed:', closed);
+    } catch (e) {
+      console.log('ERROR=====>', e);
+    }
+    _loading(false);
+  };
+
+  const receivePayment = async () => {
+    _loading(true);
+    try {
+      let invoice = await node?.receivePayment(
+        10001,
+        'Testing invoice from Android',
+        1000,
+      );
+      let invoice1 = await node?.receiveVariableAmountPayment(
+        'Testing variable invoice',
+        1000,
+      );
+      console.log('Invoice created', invoice);
     } catch (e) {
       console.log('ERROR=====>', e);
     }
@@ -133,18 +187,67 @@ const App = (): JSX.Element => {
     console.log('SEND()');
     _loading(true);
     try {
-      // let res = await node?.sendPayment(invoice);
-      let res = await node?.sendPaymentUsingAmount(invoice, 2000);
+      // let res = await node?.sendPaymentUsingAmount(invoice, 2000);
       // let res = await node?.sendSpontaneousPayment(
-      //   1500,
+      //   5000,
       //   new PublicKey(connectConfig.pubkey),
       // );
+
+      let res = await node?.sendPayment(invoice);
       console.log('Send', res);
     } catch (e) {
       console.log('Send error', e);
     }
     _loading(false);
   };
+
+  const sendToOnChain = async () => {
+    console.log('SEND To Chain()');
+    _loading(true);
+    try {
+      // let res = await node?.sendToOnchainAddress(
+      //   new Address('bcrt1qn5ljhz3aaww0s23jkzwlzmy89n70rlcldc7845'),
+      //   2000,
+      // );
+
+      let res = await node?.sendAllToOnchainAddress(
+        new Address('bcrt1qn5ljhz3aaww0s23jkzwlzmy89n70rlcldc7845'),
+      );
+
+      console.log('Send', res);
+    } catch (e) {
+      console.log('Send error', e);
+    }
+    _loading(false);
+  };
+
+  const paymentDetails = async () => {
+    try {
+      let hash = new PaymentHash(
+        'b800ecac003038b383e0529bacd8652caffd7a101576e75149e2050cc48a6c91',
+      );
+      // let remove = await node?.removePayment(hash);
+      let remove = await node?.payment(hash);
+      console.log('App level', remove);
+    } catch (e) {
+      console.log('Error occured::', e);
+    }
+  };
+
+  const signAndVerify = async () => {
+    try {
+      let msg = [15, 20, 25, 56];
+      let pkey = new PublicKey(connectConfig.pubkey);
+      let sig = await node?.signMessage(msg);
+
+      let verify = await node?.verifySignature(msg, sig!, pkey);
+      console.log('Sign', sig);
+      console.log('Verify', verify);
+    } catch (e) {
+      console.log('Error occured::', e);
+    }
+  };
+
   return (
     <View style={{justifyContent: 'center', alignItems: 'center', flex: 1}}>
       <Button
@@ -166,8 +269,27 @@ const App = (): JSX.Element => {
       />
       <Margin />
       <Button
-        title="Invoice and balance"
-        onPress={() => !loading && invoiceAndBalance()}
+        title="Get balance"
+        onPress={() => !loading && getBalance()}
+        color={loading ? 'gray' : 'green'}
+      />
+
+      <Margin />
+      <Button
+        title="Open Channel"
+        onPress={() => !loading && openChannel()}
+        color={loading ? 'gray' : 'green'}
+      />
+      <Button
+        title="Close Channel"
+        onPress={() => !loading && closeChannel()}
+        color={loading ? 'gray' : 'green'}
+      />
+
+      <Margin />
+      <Button
+        title="Receive Payment"
+        onPress={() => !loading && receivePayment()}
         color={loading ? 'gray' : 'green'}
       />
       <Margin />
@@ -195,6 +317,23 @@ const App = (): JSX.Element => {
         onPress={() => !loading && send()}
         color={loading ? 'gray' : 'green'}
       />
+      <Button
+        title="send To OnChain"
+        onPress={() => !loading && sendToOnChain()}
+        color={loading ? 'gray' : 'green'}
+      />
+
+      <Button
+        title="Payment details"
+        onPress={() => !loading && paymentDetails()}
+        color={loading ? 'gray' : 'green'}
+      />
+      <Button
+        title="Sign & Verify"
+        onPress={() => !loading && signAndVerify()}
+        color={loading ? 'gray' : 'green'}
+      />
+
       <Margin />
       <Text selectable>{response}</Text>
       <Text selectable>{invoice}</Text>
@@ -203,7 +342,7 @@ const App = (): JSX.Element => {
 };
 
 const Margin = () => {
-  return <View style={{marginVertical: 10}} />;
+  return <View style={{marginVertical: 2}} />;
 };
 
 export default App;

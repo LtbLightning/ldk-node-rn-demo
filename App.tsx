@@ -1,24 +1,34 @@
-import {ActivityIndicator, Button, Text, TextInput, View} from 'react-native';
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import {
   Address,
+  ChannelConfig,
   ChannelId,
+  LogLevel,
   NetAddress,
   PaymentHash,
   PublicKey,
 } from 'ldk-node/lib/classes/Bindings';
-import {Builder, Config, Node} from 'ldk-node';
+import {Builder, Config, Node, generateEntropyMnemonic} from 'ldk-node';
 import React, {useState} from 'react';
 
+import {Button} from './components';
 import RNFS from 'react-native-fs';
 
 let docDir = RNFS.DocumentDirectoryPath + '/';
-let host = 'http://192.168.8.100';
+let host = '192.168.8.100';
 let port = 30000;
 let esploaraServer = new NetAddress(host, port);
 console.log('DOCUMENT DIRECTORY===>', docDir);
 
 let connectConfig = {
-  pubkey: '03bc9ca485a5e09460bcac68fb7edbc727f54beeb48e468d0c74ce25fd5b0dab15',
+  pubkey: '0255953ab2863bc62b0ccfe59e1c64133aae8514d43263e6f9c1fa80c5088c1d7f',
   address: `${host}:9735`,
   persist: false,
 };
@@ -34,11 +44,25 @@ const App = (): JSX.Element => {
   const [node, _node] = useState<Node>();
   const [started, _started] = useState<boolean>(false);
 
+  const mnemonicString = async () => {
+    const mnemonicRes = await generateEntropyMnemonic();
+    console.log('Mnemong created', mnemonicRes);
+  };
+
   const startLdk = async () => {
-    console.log('START()');
     _loading(true);
     try {
-      const config = await new Config().create(docDir, 'regtest', null, 144);
+      const config = await new Config().create(
+        docDir,
+        '/tmp/ldk_node/',
+        'regtest',
+        null,
+        144,
+        80,
+        30,
+        60,
+        LogLevel.error,
+      );
       const builder = await new Builder().fromConfig(config);
 
       await builder.setEsploraServer(esploaraServer);
@@ -68,12 +92,11 @@ const App = (): JSX.Element => {
   };
 
   const connectPeer = async () => {
-    console.log('ConnectPeer()');
     _loading(true);
     try {
       let connected = await node?.connect(
         connectConfig.pubkey,
-        connectConfig.address,
+        connectConfig.address.replace('http://', ''),
         connectConfig.persist,
       );
       console.log('Connected:', connected);
@@ -83,8 +106,18 @@ const App = (): JSX.Element => {
     _loading(false);
   };
 
+  const stop = async () => {
+    _loading(true);
+    try {
+      let stopped = await node?.stop();
+      console.log('Stopped:', stopped);
+    } catch (e) {
+      console.log('ERROR=====>', e);
+    }
+    _loading(false);
+  };
+
   const sync = async () => {
-    console.log('SYNC()');
     _loading(true);
     try {
       console.log('Synced:', await node?.syncWallets());
@@ -96,8 +129,7 @@ const App = (): JSX.Element => {
     _loading(false);
   };
 
-  const getBalance = async () => {
-    console.log('invoiceAndBalance()');
+  const getAddressAndBalance = async () => {
     _loading(true);
     try {
       let address = await node?.newOnchainAddress();
@@ -108,9 +140,6 @@ const App = (): JSX.Element => {
 
       let totalBalance = await node?.totalOnchainBalanceSats();
       console.log('Total Balance:', totalBalance);
-
-      // let stopped = await node?.stop();
-      // console.log('Stopped:', stopped);
     } catch (e) {
       console.log('ERROR=====>', e);
     }
@@ -126,7 +155,8 @@ const App = (): JSX.Element => {
         connectConfig.address,
         20000,
         150,
-        connectConfig.persist,
+        new ChannelConfig(0, 72, 150, 75, 56),
+        false,
       );
       console.log('Openend Channel:', openendChannel);
     } catch (e) {
@@ -135,18 +165,34 @@ const App = (): JSX.Element => {
     _loading(false);
   };
 
+  let newChannelId = new ChannelId(
+    '0b039ad903776dc4fc7900fdfc1f1d91a6e5f389b95d84e8dc7dbbeb8172dc2c',
+  );
+
+  let newCunterpartyNodeId = new PublicKey(
+    '0255953ab2863bc62b0ccfe59e1c64133aae8514d43263e6f9c1fa80c5088c1d7f',
+  );
+
   const closeChannel = async () => {
     _loading(true);
     try {
-      let closed = await node?.closeChannel(
-        new ChannelId(
-          '2d98ebe60571ef9a13d592af96ebacaef0ad68e10c1e1e9832880af603a89dfb',
-        ),
-        new PublicKey(
-          '02ad94ac26d5b35f23bec4e27044f08c3ec06f4b25f9b4924a8a1130d862efa52a',
-        ),
-      );
+      let closed = await node?.closeChannel(newChannelId, newCunterpartyNodeId);
       console.log('Channel closed:', closed);
+    } catch (e) {
+      console.log('ERROR=====>', e);
+    }
+    _loading(false);
+  };
+
+  const updateChannelConfig = async () => {
+    _loading(true);
+    try {
+      let updated = await node?.updateChannelConfig(
+        newChannelId,
+        newCunterpartyNodeId,
+        new ChannelConfig(100, 50, 50, 50, 50),
+      );
+      console.log('Channel config updated:', updated);
     } catch (e) {
       console.log('ERROR=====>', e);
     }
@@ -159,10 +205,6 @@ const App = (): JSX.Element => {
       let invoice = await node?.receivePayment(
         10001,
         'Testing invoice from Android',
-        1000,
-      );
-      let invoice1 = await node?.receiveVariableAmountPayment(
-        'Testing variable invoice',
         1000,
       );
       console.log('Invoice created', invoice);
@@ -184,15 +226,8 @@ const App = (): JSX.Element => {
 
   const [invoice, _invoice] = useState('');
   const send = async () => {
-    console.log('SEND()');
     _loading(true);
     try {
-      // let res = await node?.sendPaymentUsingAmount(invoice, 2000);
-      // let res = await node?.sendSpontaneousPayment(
-      //   5000,
-      //   new PublicKey(connectConfig.pubkey),
-      // );
-
       let res = await node?.sendPayment(invoice);
       console.log('Send', res);
     } catch (e) {
@@ -202,14 +237,8 @@ const App = (): JSX.Element => {
   };
 
   const sendToOnChain = async () => {
-    console.log('SEND To Chain()');
     _loading(true);
     try {
-      // let res = await node?.sendToOnchainAddress(
-      //   new Address('bcrt1qn5ljhz3aaww0s23jkzwlzmy89n70rlcldc7845'),
-      //   2000,
-      // );
-
       let res = await node?.sendAllToOnchainAddress(
         new Address('bcrt1qn5ljhz3aaww0s23jkzwlzmy89n70rlcldc7845'),
       );
@@ -226,7 +255,6 @@ const App = (): JSX.Element => {
       let hash = new PaymentHash(
         'b800ecac003038b383e0529bacd8652caffd7a101576e75149e2050cc48a6c91',
       );
-      // let remove = await node?.removePayment(hash);
       let remove = await node?.payment(hash);
       console.log('App level', remove);
     } catch (e) {
@@ -249,100 +277,106 @@ const App = (): JSX.Element => {
   };
 
   return (
-    <View style={{justifyContent: 'center', alignItems: 'center', flex: 1}}>
-      <Button
-        title="Start LDK Node"
-        onPress={() => !loading && startLdk()}
-        color={started ? 'gray' : 'green'}
-      />
-      <Margin />
-      <Button
-        title="ConnectPeer"
-        onPress={() => !loading && connectPeer()}
-        color={loading ? 'gray' : 'green'}
-      />
-      <Margin />
-      <Button
-        title="Sync"
-        onPress={() => !loading && sync()}
-        color={loading ? 'gray' : 'green'}
-      />
-      <Margin />
-      <Button
-        title="Get balance"
-        onPress={() => !loading && getBalance()}
-        color={loading ? 'gray' : 'green'}
-      />
+    <ScrollView
+      contentContainerStyle={{
+        justifyContent: 'center',
+        alignItems: 'center',
+        flex: 1,
+      }}>
+      <SafeAreaView>
+        <Button
+          title="Start LDK Node"
+          onPress={() => !loading && startLdk()}
+          color={started ? 'gray' : 'green'}
+        />
 
-      <Margin />
-      <Button
-        title="Open Channel"
-        onPress={() => !loading && openChannel()}
-        color={loading ? 'gray' : 'green'}
-      />
-      <Button
-        title="Close Channel"
-        onPress={() => !loading && closeChannel()}
-        color={loading ? 'gray' : 'green'}
-      />
+        <Button
+          title="ConnectPeer"
+          onPress={() => !loading && connectPeer()}
+          color={loading ? 'gray' : 'green'}
+        />
 
-      <Margin />
-      <Button
-        title="Receive Payment"
-        onPress={() => !loading && receivePayment()}
-        color={loading ? 'gray' : 'green'}
-      />
-      <Margin />
-      <Button
-        title="List Peers"
-        onPress={() => !loading && listPeers()}
-        color={loading ? 'gray' : 'green'}
-      />
-      <Margin />
-      <Button
-        title="List Channels"
-        onPress={() => !loading && listChannels()}
-        color={loading ? 'gray' : 'green'}
-      />
-      <Margin />
-      {loading && <ActivityIndicator />}
-      <TextInput
-        value={invoice}
-        onChangeText={_invoice}
-        style={{borderWidth: 2, width: 300, paddingVertical: 15}}
-      />
-      <Margin />
-      <Button
-        title="Send"
-        onPress={() => !loading && send()}
-        color={loading ? 'gray' : 'green'}
-      />
-      <Button
-        title="send To OnChain"
-        onPress={() => !loading && sendToOnChain()}
-        color={loading ? 'gray' : 'green'}
-      />
+        <Button
+          title="Sync"
+          onPress={() => !loading && sync()}
+          color={loading ? 'gray' : 'green'}
+        />
 
-      <Button
-        title="Payment details"
-        onPress={() => !loading && paymentDetails()}
-        color={loading ? 'gray' : 'green'}
-      />
-      <Button
-        title="Sign & Verify"
-        onPress={() => !loading && signAndVerify()}
-        color={loading ? 'gray' : 'green'}
-      />
+        <Button
+          title="Get Address and balance"
+          onPress={() => !loading && getAddressAndBalance()}
+          color={loading ? 'gray' : 'green'}
+        />
 
-      <Margin />
-      <Text selectable>{response}</Text>
-      <Text selectable>{invoice}</Text>
-    </View>
+        <Button
+          title="Open Channel"
+          onPress={() => !loading && openChannel()}
+          color={loading ? 'gray' : 'green'}
+        />
+
+        <Button
+          title="Update Channel Config"
+          onPress={() => !loading && updateChannelConfig()}
+          color={loading ? 'gray' : 'green'}
+        />
+
+        <Button
+          title="Close Channel"
+          onPress={() => !loading && closeChannel()}
+          color={loading ? 'gray' : 'green'}
+        />
+
+        <Button
+          title="Receive Payment"
+          onPress={() => !loading && receivePayment()}
+          color={loading ? 'gray' : 'green'}
+        />
+
+        <Button
+          title="List Peers"
+          onPress={() => !loading && listPeers()}
+          color={loading ? 'gray' : 'green'}
+        />
+
+        <Button
+          title="List Channels"
+          onPress={() => !loading && listChannels()}
+          color={loading ? 'gray' : 'green'}
+        />
+
+        {loading && <ActivityIndicator />}
+        <TextInput
+          value={invoice}
+          onChangeText={_invoice}
+          style={{borderWidth: 2, width: 300, paddingVertical: 15}}
+        />
+
+        <Button
+          title="Send"
+          onPress={() => !loading && send()}
+          color={loading ? 'gray' : 'green'}
+        />
+        <Button
+          title="send To OnChain"
+          onPress={() => !loading && sendToOnChain()}
+          color={loading ? 'gray' : 'green'}
+        />
+
+        <Button
+          title="Payment details"
+          onPress={() => !loading && paymentDetails()}
+          color={loading ? 'gray' : 'green'}
+        />
+        <Button
+          title="Sign & Verify"
+          onPress={() => !loading && signAndVerify()}
+          color={loading ? 'gray' : 'green'}
+        />
+
+        <Text selectable>{response}</Text>
+        <Text selectable>{invoice}</Text>
+      </SafeAreaView>
+    </ScrollView>
   );
 };
-
-const Margin = () => {
-  return <View style={{marginVertical: 2}} />;
-};
-
 export default App;

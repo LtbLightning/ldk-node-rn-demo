@@ -73,7 +73,7 @@ PODS:
   - hermes-engine (0.72.3):
     - hermes-engine/Pre-built (= 0.72.3)
   - hermes-engine/Pre-built (0.72.3)
-  - ldk-node (1.0.0):
+  - ldk-node (0.1.0):
     - React
   - libevent (2.1.12)
   - OpenSSL-Universal (1.1.1100)
@@ -680,7 +680,7 @@ SPEC CHECKSUMS:
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   hermes-engine: 10fbd3f62405c41ea07e71973ea61e1878d07322
-  ldk-node: 49e91c201c853be2848f02d360102cada9684ba0
+  ldk-node: f8b5becdf0858fd68180978f168b46fa4b4d800b
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1

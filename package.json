@@ -13,7 +13,8 @@
     "ldk-node": "file:./../ldk-node",
     "react": "18.2.0",
     "react-native": "0.72.3",
-    "react-native-fs": "^2.20.0"
+    "react-native-fs": "^2.20.0",
+    "react-native-popup-menu": "^0.16.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

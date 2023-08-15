@@ -1,5 +1,6 @@
 import {Button as Btn, ButtonProps, Image, Modal, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Fragment, useState} from 'react';
+import {Menu, MenuOption, MenuOptions, MenuTrigger} from 'react-native-popup-menu';
 
 import {ChannelDetails} from 'ldk-node/lib/classes/Bindings';
 import {styles} from './styles';
@@ -100,7 +101,16 @@ export const ChannelsListView = ({channels}: {channels: Array<ChannelDetails> | 
               <Text>{channel.balanceMsat} SATS</Text>
             </View>
             <TouchableOpacity style={styles.channelSideView}>
-              <Text style={styles.menuItem}>...</Text>
+              <Menu>
+                <MenuTrigger>
+                  <Text style={styles.menuItem}>...</Text>
+                </MenuTrigger>
+                <MenuOptions>
+                  <MenuOption onSelect={() => alert(`Save`)} text="Receive" />
+                  <MenuOption onSelect={() => alert(`Delete`)} text="Send" />
+                  <MenuOption onSelect={() => alert(`Not called`)} text="Close Channel" />
+                </MenuOptions>
+              </Menu>
             </TouchableOpacity>
           </View>
         );

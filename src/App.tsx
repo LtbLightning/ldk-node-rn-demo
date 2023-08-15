@@ -4,6 +4,7 @@ import {ChannelDetails, NetAddress} from 'ldk-node/lib/classes/Bindings';
 import {Fragment, useState} from 'react';
 import {SafeAreaView, ScrollView, Text, TouchableOpacity, View} from 'react-native';
 
+import {MenuProvider} from 'react-native-popup-menu';
 import RNFS from 'react-native-fs';
 import {styles} from './styles';
 
@@ -82,41 +83,43 @@ export const App = (): JSX.Element => {
   };
 
   return (
-    <SafeAreaView>
-      <Header />
-      <View style={styles.container}>
-        {!started ? (
-          <MnemonicView buildNodeCallback={buildNode} />
-        ) : (
-          <ScrollView>
-            <Text style={styles.greenText}>Node started successfully....</Text>
-            <View style={styles.responseBox}>
-              <Text style={styles.balanceText}>{balance / 100000000} BTC</Text>
-              <Text>Listening Address: {nodeInfo.listeningAddress}</Text>
-              <Text>Node ID:</Text>
-              <Text selectable>{nodeInfo.nodeId}</Text>
-              {onChainAddress && (
-                <Fragment>
-                  <Text>New Address:</Text>
-                  <Text selectable>{onChainAddress}</Text>
-                </Fragment>
-              )}
-            </View>
+    <MenuProvider>
+      <SafeAreaView>
+        <Header />
+        <View style={styles.container}>
+          {!started ? (
+            <MnemonicView buildNodeCallback={buildNode} />
+          ) : (
+            <ScrollView>
+              <Text style={styles.greenText}>Node started successfully....</Text>
+              <View style={styles.responseBox}>
+                <Text style={styles.balanceText}>{balance / 100000000} BTC</Text>
+                <Text>Listening Address: {nodeInfo.listeningAddress}</Text>
+                <Text>Node ID:</Text>
+                <Text selectable>{nodeInfo.nodeId}</Text>
+                {onChainAddress && (
+                  <Fragment>
+                    <Text>New Address:</Text>
+                    <Text selectable>{onChainAddress}</Text>
+                  </Fragment>
+                )}
+              </View>
 
-            <Button title="On Chain Balance" onPress={onChainBalance} />
-            <Button title="New Funding Address" onPress={newOnchainAddress} />
-            <Button title="List Channels" onPress={listChannels} />
-            <View style={styles.row}>
-              <Text style={styles.boldText}>Channels</Text>
-              <TouchableOpacity style={{...styles.plusButton}} onPress={() => setShowChannelModal(true)}>
-                <Text style={styles.boldText}>+</Text>
-              </TouchableOpacity>
-            </View>
-            <ChannelsListView channels={channels} />
-          </ScrollView>
-        )}
-      </View>
-      {showChannelModal && <OpenChannelModal openChannelCallback={openChannelCallback} cancelCallback={() => setShowChannelModal(false)} />}
-    </SafeAreaView>
+              <Button title="On Chain Balance" onPress={onChainBalance} />
+              <Button title="New Funding Address" onPress={newOnchainAddress} />
+              <Button title="List Channels" onPress={listChannels} />
+              <View style={styles.row}>
+                <Text style={styles.boldText}>Channels</Text>
+                <TouchableOpacity style={{...styles.plusButton}} onPress={() => setShowChannelModal(true)}>
+                  <Text style={styles.boldText}>+</Text>
+                </TouchableOpacity>
+              </View>
+              <ChannelsListView channels={channels} />
+            </ScrollView>
+          )}
+        </View>
+        {showChannelModal && <OpenChannelModal openChannelCallback={openChannelCallback} cancelCallback={() => setShowChannelModal(false)} />}
+      </SafeAreaView>
+    </MenuProvider>
   );
 };

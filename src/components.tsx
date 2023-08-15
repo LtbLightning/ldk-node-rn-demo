@@ -1,8 +1,9 @@
-import {Button as Btn, ButtonProps, Image, Modal, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {Button as Btn, ButtonProps, Image, Modal, Pressable, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Fragment, useState} from 'react';
 import {Menu, MenuOption, MenuOptions, MenuTrigger} from 'react-native-popup-menu';
 
 import {ChannelDetails} from 'ldk-node/lib/classes/Bindings';
+import {Node} from 'ldk-node';
 import {styles} from './styles';
 
 export interface ChannelParams {
@@ -13,9 +14,11 @@ export interface ChannelParams {
   counterPartyAmount: string;
 }
 
-export const Button = ({loading, ...rest}: React.PropsWithChildren<ButtonProps & {loading?: boolean}>) => {
+const menuItems = ['Close', 'Send', 'Receive'];
+
+export const Button = ({loading, style, ...rest}: React.PropsWithChildren<ButtonProps & {loading?: boolean; style?: any}>) => {
   return (
-    <View style={styles.btn}>
+    <View style={{...styles.btn, ...style}}>
       <Btn {...rest} color="white" />
     </View>
   );
@@ -41,9 +44,17 @@ export const MnemonicView = ({buildNodeCallback}: {buildNodeCallback: (m: string
   );
 };
 
+export const IconButton = ({onPress, title, style}: {onPress: any; title: string; style?: any}) => {
+  return (
+    <TouchableOpacity style={{...styles.plusButton, ...style}} onPress={onPress}>
+      <Text style={styles.boldText}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
+
 export const OpenChannelModal = ({openChannelCallback, cancelCallback}: {openChannelCallback: ({}: ChannelParams) => {}; cancelCallback: any}) => {
   const [channelDetails, setChannelDetails] = useState({
-    nodeId: '03ccdc462d7f5d5328c3a13bc18b5cf696295ca71a14698c70aa8402ea0dd33d1a',
+    nodeId: '03d01589c168a6da473203dbdb323344316b925191f258b8659bc805e942ff9fa8',
     ip: '192.168.8.100',
     port: '9735',
     amount: '20000',
@@ -57,37 +68,43 @@ export const OpenChannelModal = ({openChannelCallback, cancelCallback}: {openCha
   let showSubmit = channelDetails.amount && channelDetails.counterPartyAmount && channelDetails.ip && channelDetails.nodeId && channelDetails.port;
 
   return (
+    <ModalView>
+      <Fragment>
+        <IconButton onPress={cancelCallback} title="X" style={styles.closeButton} />
+        <Text style={{...styles.leftAlign, ...styles.boldText}}>Open Channel</Text>
+        <TextInput style={styles.textInput} placeholder="Node Id" onChangeText={e => updateDetails('nodeId', e)} value={channelDetails.nodeId} />
+        <TextInput style={styles.textInput} placeholder="Ip Address" onChangeText={e => updateDetails('ip', e)} value={channelDetails.ip} />
+        <TextInput style={styles.textInput} placeholder="Port" onChangeText={e => updateDetails('port', e)} value={channelDetails.port} />
+        <TextInput style={styles.textInput} placeholder="Amount" onChangeText={e => updateDetails('amount', e)} value={channelDetails.amount} />
+        <TextInput
+          style={styles.textInput}
+          placeholder="CounterPartyAmount"
+          onChangeText={e => updateDetails('counterPartyAmount', e)}
+          value={channelDetails.counterPartyAmount}
+        />
+        {showSubmit && <Button title="Submit" style={styles.fullWidthBtn} onPress={() => openChannelCallback(channelDetails)} />}
+      </Fragment>
+    </ModalView>
+  );
+};
+
+export const ModalView = (props: any) => {
+  return (
     <Modal transparent={true}>
       <View style={styles.modelContainer}>
-        <View style={styles.modalView}>
-          <Text style={styles.boldText}>Open Channel</Text>
-          <TextInput style={styles.textInput} placeholder="Node Id" onChangeText={e => updateDetails('nodeId', e)} value={channelDetails.nodeId} />
-          <TextInput style={styles.textInput} placeholder="Ip Address" onChangeText={e => updateDetails('ip', e)} value={channelDetails.ip} />
-          <TextInput style={styles.textInput} placeholder="Port" onChangeText={e => updateDetails('port', e)} value={channelDetails.port} />
-          <TextInput style={styles.textInput} placeholder="Amount" onChangeText={e => updateDetails('amount', e)} value={channelDetails.amount} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="CounterPartyAmount"
-            onChangeText={e => updateDetails('counterPartyAmount', e)}
-            value={channelDetails.counterPartyAmount}
-          />
-          <View style={styles.row}>
-            <Button title="Cancel" onPress={cancelCallback} />
-            {showSubmit && <Button title="Submit" onPress={() => openChannelCallback(channelDetails)} />}
-          </View>
-        </View>
+        <View style={styles.modalView}>{props.children}</View>
       </View>
     </Modal>
   );
 };
 
-export const ChannelsListView = ({channels}: {channels: Array<ChannelDetails> | undefined}) => {
+export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<ChannelDetails> | undefined; menuItemCallback: Function}) => {
   if (channels?.length == 0) return <Text style={{alignSelf: 'center'}}>No Open Channels</Text>;
   return (
     <Fragment>
-      {channels?.map((channel, index) => {
+      {channels?.map((channel, channelIndex) => {
         return (
-          <View key={index} style={styles.channelListView}>
+          <View key={channelIndex} style={styles.channelListView}>
             <View style={styles.channelSideView}>
               {channel.isChannelReady && channel.isUsable ? (
                 <Image source={require('./assets/complete.png')} style={styles.channelIcon} />
@@ -101,20 +118,42 @@ export const ChannelsListView = ({channels}: {channels: Array<ChannelDetails> | 
               <Text>{channel.balanceMsat} SATS</Text>
             </View>
             <TouchableOpacity style={styles.channelSideView}>
-              <Menu>
-                <MenuTrigger>
-                  <Text style={styles.menuItem}>...</Text>
-                </MenuTrigger>
-                <MenuOptions>
-                  <MenuOption onSelect={() => alert(`Save`)} text="Receive" />
-                  <MenuOption onSelect={() => alert(`Delete`)} text="Send" />
-                  <MenuOption onSelect={() => alert(`Not called`)} text="Close Channel" />
-                </MenuOptions>
-              </Menu>
+              {channel?.isChannelReady && (
+                <Menu>
+                  <MenuTrigger>
+                    <Text style={styles.menuItem}>...</Text>
+                  </MenuTrigger>
+                  <MenuOptions>
+                    {menuItems.map((item, index) => (
+                      <MenuOption onSelect={() => menuItemCallback(index, channelIndex)} text={item} key={index} />
+                    ))}
+                  </MenuOptions>
+                </Menu>
+              )}
             </TouchableOpacity>
           </View>
         );
       })}
     </Fragment>
+  );
+};
+
+export const PaymentModal = ({index, hide, node}: {index: number; hide: Function; node: Node | undefined}) => {
+  const [value, setValue] = useState('');
+  const [response, setResponse] = useState<any>();
+  const isSend = index == 1;
+  const handleSubmit = async () => {
+    setValue('');
+    let res = isSend ? await node?.sendPayment(value) : await node?.receivePayment(parseInt(value), 'Test Memo', 150);
+    setResponse(JSON.stringify(res));
+  };
+  return (
+    <ModalView>
+      <IconButton onPress={hide} title="X" style={styles.closeButton} />
+      <Text style={{...styles.leftAlign, ...styles.boldText}}>{menuItems[index]}</Text>
+      <TextInput style={styles.textInput} placeholder={isSend ? 'Invoice' : 'Amount'} onChangeText={setValue} value={value} multiline />
+      <Button title="Submit" style={styles.fullWidthBtn} onPress={handleSubmit} />
+      <Text selectable>{response}</Text>
+    </ModalView>
   );
 };

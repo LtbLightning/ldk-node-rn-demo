@@ -1,5 +1,5 @@
 import {Builder, Config, Node} from 'ldk-node';
-import {Button, ChannelParams, ChannelsListView, Header, MnemonicView, OpenChannelModal} from './components';
+import {Button, ChannelParams, ChannelsListView, Header, IconButton, MnemonicView, OpenChannelModal, PaymentModal} from './components';
 import {ChannelDetails, NetAddress} from 'ldk-node/lib/classes/Bindings';
 import {Fragment, useState} from 'react';
 import {SafeAreaView, ScrollView, Text, TouchableOpacity, View} from 'react-native';
@@ -20,12 +20,14 @@ export const App = (): JSX.Element => {
   const [balance, setBalance] = useState<any>('0.0');
   const [onChainAddress, setOnChainAddress] = useState<any>();
   const [showChannelModal, setShowChannelModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPaymentIndex, setSelectedPaymentIndex] = useState(0);
 
   const [channels, setChannels] = useState<Array<ChannelDetails>>();
 
   const buildNode = async (mnemonic: string) => {
     try {
-      const config = await new Config().create(docDir + 'rn_node', 'regtest', new NetAddress(host, 50000));
+      const config = await new Config().create(docDir + 'alice_node', 'regtest', new NetAddress(host, 50000));
       const builder = await new Builder().fromConfig(config);
       await builder.setEsploraServer(esploaraServer);
       await builder.setEntropyBip39Mnemonic(mnemonic);
@@ -82,6 +84,16 @@ export const App = (): JSX.Element => {
     }
   };
 
+  const handleMenuItemCallback = async (index: number, channelIndex: number) => {
+    setSelectedPaymentIndex(index);
+    if (index > 0) setShowPaymentModal(true);
+    else {
+      let currentChannel = channels[channelIndex];
+      await node?.closeChannel(currentChannel?.channelId, currentChannel.counterpartyNodeId);
+      await listChannels();
+    }
+  };
+
   return (
     <MenuProvider>
       <SafeAreaView>
@@ -110,15 +122,14 @@ export const App = (): JSX.Element => {
               <Button title="List Channels" onPress={listChannels} />
               <View style={styles.row}>
                 <Text style={styles.boldText}>Channels</Text>
-                <TouchableOpacity style={{...styles.plusButton}} onPress={() => setShowChannelModal(true)}>
-                  <Text style={styles.boldText}>+</Text>
-                </TouchableOpacity>
+                <IconButton onPress={() => setShowChannelModal(true)} title="+" />
               </View>
-              <ChannelsListView channels={channels} />
+              <ChannelsListView channels={channels} menuItemCallback={handleMenuItemCallback} />
             </ScrollView>
           )}
         </View>
         {showChannelModal && <OpenChannelModal openChannelCallback={openChannelCallback} cancelCallback={() => setShowChannelModal(false)} />}
+        {showPaymentModal && <PaymentModal index={selectedPaymentIndex} hide={() => setShowPaymentModal(false)} node={node} />}
       </SafeAreaView>
     </MenuProvider>
   );

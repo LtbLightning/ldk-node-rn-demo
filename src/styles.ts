@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#D0D7FB',
     borderRadius: 12,
     marginVertical: 20,
-    height: 200,
+    minHeight: 200,
   },
   btn: {
     backgroundColor: AppColors.blue,
@@ -66,4 +66,7 @@ export const styles = StyleSheet.create({
   channelSideView: {width: '10%'},
   channelMainView: {width: '70%'},
   menuItem: {fontSize: 35, color: 'grey', marginTop: -25, marginLeft: 4},
+  fullWidthBtn: {width: '100%'},
+  closeButton: {position: 'absolute', right: 10, top: 10},
+  leftAlign: {alignSelf: 'flex-start'},
 });

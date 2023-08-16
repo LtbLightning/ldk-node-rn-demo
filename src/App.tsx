@@ -9,7 +9,7 @@ import RNFS from 'react-native-fs';
 import {styles} from './styles';
 
 let docDir = RNFS.DocumentDirectoryPath + '/';
-let host = '192.168.8.100';
+export let host = '192.168.1.55';
 let port = 30000;
 let esploaraServer = `http://${host}:${port}`;
 
@@ -27,10 +27,11 @@ export const App = (): JSX.Element => {
 
   const buildNode = async (mnemonic: string) => {
     try {
-      const config = await new Config().create(docDir + 'alice_node', 'regtest', new NetAddress(host, 50000));
+      const config = await new Config().create(docDir + 'alc_node__1', 'regtest', new NetAddress(host, 5000));
       const builder = await new Builder().fromConfig(config);
       await builder.setEsploraServer(esploaraServer);
       await builder.setEntropyBip39Mnemonic(mnemonic);
+
       const nodeObj: Node = await builder.build();
       setNode(nodeObj);
       setStarted(await nodeObj.start());
@@ -65,8 +66,8 @@ export const App = (): JSX.Element => {
   const openChannelCallback = async (params: ChannelParams) => {
     try {
       let addr = new NetAddress(params.ip, parseInt(params.port));
-      await node?.connect(params.nodeId, addr, false);
-      let opened = await node?.connectOpenChannel(params.nodeId, addr, parseInt(params.amount), parseInt(params.counterPartyAmount), null, false);
+      // await node?.connect(params.nodeId, addr, false);
+      let opened = await node?.connectOpenChannel(params.nodeId, addr, parseInt(params.amount), parseInt(params.counterPartyAmount), null, true);
       console.log('Channel opened', opened);
       setShowChannelModal(false);
     } catch (e) {
@@ -96,7 +97,7 @@ export const App = (): JSX.Element => {
 
   return (
     <MenuProvider>
-      <SafeAreaView>
+      <SafeAreaView style={{paddingBottom: 70}}>
         <Header />
         <View style={styles.container}>
           {!started ? (

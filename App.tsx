@@ -5,9 +5,9 @@ import React, {useState} from 'react';
 
 import {Button} from './src/components';
 import RNFS from 'react-native-fs';
+import { host } from './src/App';
 
 let docDir = RNFS.DocumentDirectoryPath + '/';
-let host = '192.168.8.100';
 let port = 30000;
 let esploaraServer = `http://${host}:${port}`;
 

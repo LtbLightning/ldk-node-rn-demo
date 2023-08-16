@@ -5,6 +5,7 @@ import {Menu, MenuOption, MenuOptions, MenuTrigger} from 'react-native-popup-men
 import {ChannelDetails} from 'ldk-node/lib/classes/Bindings';
 import {Node} from 'ldk-node';
 import {styles} from './styles';
+import { host } from './App';
 
 export interface ChannelParams {
   nodeId: string;
@@ -33,8 +34,8 @@ export const Header = () => {
   );
 };
 
-export const MnemonicView = ({buildNodeCallback}: {buildNodeCallback: (m: string) => {}}) => {
-  const [mnemonic, setMnemonic] = useState('awkward fox lawn senior flavor cook genuine cake endorse rare walk this');
+export const MnemonicView = ({buildNodeCallback}: {buildNodeCallback: Function}) => {
+  const [mnemonic, setMnemonic] = useState('tackle pause sort ten task vast candy skill retire upset lend captain');
   return (
     <View>
       <Text style={styles.boldText}>Enter Menmonic</Text>
@@ -54,11 +55,11 @@ export const IconButton = ({onPress, title, style}: {onPress: any; title: string
 
 export const OpenChannelModal = ({openChannelCallback, cancelCallback}: {openChannelCallback: ({}: ChannelParams) => {}; cancelCallback: any}) => {
   const [channelDetails, setChannelDetails] = useState({
-    nodeId: '03d01589c168a6da473203dbdb323344316b925191f258b8659bc805e942ff9fa8',
-    ip: '192.168.8.100',
-    port: '9735',
-    amount: '20000',
-    counterPartyAmount: '150',
+    nodeId: '02f42d9e57048ba366249c873ce7440cfaad783c249cbd4265b4eac62184d02eae',
+    ip: host,
+    port: '5001',
+    amount: '50000',
+    counterPartyAmount: '12365',
   });
 
   const updateDetails = (key: any, value: any) => {
@@ -115,7 +116,8 @@ export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<
             </View>
             <View style={styles.channelMainView}>
               <Text style={styles.boldText}>{channel.channelId.channelIdHex}</Text>
-              <Text>{channel.balanceMsat} SATS</Text>
+              <Text>Balance: {channel.balanceMsat} SATS</Text>
+              <Text>Outbond Capacity: {channel.outboundCapacityMsat} MSATS</Text>
             </View>
             <TouchableOpacity style={styles.channelSideView}>
               {channel?.isChannelReady && (

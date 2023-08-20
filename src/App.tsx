@@ -1,15 +1,15 @@
 import {Builder, Config, Node} from 'ldk-node';
-import {Button, ChannelParams, ChannelsListView, Header, IconButton, MnemonicView, OpenChannelModal, PaymentModal} from './components';
 import {ChannelDetails, NetAddress} from 'ldk-node/lib/classes/Bindings';
 import {Fragment, useState} from 'react';
-import {SafeAreaView, ScrollView, Text, TouchableOpacity, View} from 'react-native';
+import {SafeAreaView, ScrollView, Text, View} from 'react-native';
+import {Button, ChannelParams, ChannelsListView, Header, IconButton, MnemonicView, OpenChannelModal, PaymentModal} from './components';
 
-import {MenuProvider} from 'react-native-popup-menu';
 import RNFS from 'react-native-fs';
+import {MenuProvider} from 'react-native-popup-menu';
 import {styles} from './styles';
 
 let docDir = RNFS.DocumentDirectoryPath + '/';
-export let host = '192.168.1.55';
+export let host = '127.0.0.1';
 let port = 30000;
 let esploaraServer = `http://${host}:${port}`;
 
@@ -27,7 +27,7 @@ export const App = (): JSX.Element => {
 
   const buildNode = async (mnemonic: string) => {
     try {
-      const config = await new Config().create(docDir + 'alc_node__1', 'regtest', new NetAddress(host, 5000));
+      const config = await new Config().create(docDir + 'alice1', 'regtest', null);
       const builder = await new Builder().fromConfig(config);
       await builder.setEsploraServer(esploaraServer);
       await builder.setEntropyBip39Mnemonic(mnemonic);

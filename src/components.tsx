@@ -28,7 +28,8 @@ export const Button = ({loading, style, ...rest}: React.PropsWithChildren<Button
 export const Header = () => {
   return (
     <View style={styles.row}>
-      <Text style={{fontWeight: '600'}}>Ldk Node React Native QuickStart</Text>
+      <Image source={require('./assets/light-logo.png')} style={styles.img} />
+      <Text style={{fontWeight: '900', fontSize: 17}}>Ldk Node React Native Demo</Text>
       <Image source={require('./assets/logo.png')} style={styles.img} />
     </View>
   );

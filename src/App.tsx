@@ -27,7 +27,7 @@ export const App = (): JSX.Element => {
 
   const buildNode = async (mnemonic: string) => {
     try {
-      const config = await new Config().create(docDir + 'alice1', 'regtest', null);
+      const config = await new Config().create(docDir + 'node1', 'regtest', new NetAddress(host, 2000));
       const builder = await new Builder().fromConfig(config);
       await builder.setEsploraServer(esploaraServer);
       await builder.setEntropyBip39Mnemonic(mnemonic);
@@ -106,7 +106,7 @@ export const App = (): JSX.Element => {
             <ScrollView>
               <Text style={styles.greenText}>Node started successfully....</Text>
               <View style={styles.responseBox}>
-                <Text style={styles.balanceText}>{balance / 100000000} BTC</Text>
+                <Text style={styles.balanceText}>{balance} BTC</Text>
                 <Text>Listening Address: {nodeInfo.listeningAddress}</Text>
                 <Text>Node ID:</Text>
                 <Text selectable>{nodeInfo.nodeId}</Text>

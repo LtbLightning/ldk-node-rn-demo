@@ -18,10 +18,10 @@ git clone https://github.com/LtbLightning/ldk-node-rn-demo.git
 Navigate to cloned folder and run following commands to install node_modules and pods.
 
 ```bash
-cd ldk-node-rn-demo
+cd Ldk-node-rn-demo
 
 # using npm
-npm install OR npm -i
+npm install
 
 # using yarn
 yarn install
@@ -63,4 +63,4 @@ This is one way to run your app — you can also run it directly from within And
 
 ## Congratulations! :tada:
 
-You've successfully run Ldk Node Demo App. :partying_face:
+You've successfully run ldk node Demo App. :partying_face:

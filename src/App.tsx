@@ -7,6 +7,7 @@ import {Button, ChannelParams, ChannelsListView, Header, IconButton, MnemonicVie
 import RNFS from 'react-native-fs';
 import {MenuProvider} from 'react-native-popup-menu';
 import {styles} from './styles';
+import CryptoJS from 'react-native-crypto-js';
 
 let docDir = RNFS.DocumentDirectoryPath + '/';
 export let host = '127.0.0.1';
@@ -27,11 +28,13 @@ export const App = (): JSX.Element => {
 
   const buildNode = async (mnemonic: string) => {
     try {
-      const config = await new Config().create(docDir + 'node1', 'regtest', new NetAddress(host, 2000));
+      const storagePath = docDir + CryptoJS.MD5(mnemonic);
+      const config = await new Config().create(storagePath, 'regtest', new NetAddress(host, 2000));
       const builder = await new Builder().fromConfig(config);
       await builder.setEsploraServer(esploaraServer);
-      await builder.setEntropyBip39Mnemonic(mnemonic);
 
+
+      await builder.setEntropyBip39Mnemonic(mnemonic);
       const nodeObj: Node = await builder.build();
       setNode(nodeObj);
       setStarted(await nodeObj.start());

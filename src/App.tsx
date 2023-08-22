@@ -106,7 +106,7 @@ export const App = (): JSX.Element => {
             <ScrollView>
               <Text style={styles.greenText}>Node started successfully....</Text>
               <View style={styles.responseBox}>
-                <Text style={styles.balanceText}>{balance} BTC</Text>
+                <Text style={styles.balanceText}>{balance / 100000000} BTC</Text>
                 <Text>Listening Address: {nodeInfo.listeningAddress}</Text>
                 <Text>Node ID:</Text>
                 <Text selectable>{nodeInfo.nodeId}</Text>

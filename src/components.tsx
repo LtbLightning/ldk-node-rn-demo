@@ -28,7 +28,7 @@ export const Button = ({loading, style, ...rest}: React.PropsWithChildren<Button
 export const Header = () => {
   return (
     <View style={styles.row}>
-      <Image source={require('./assets/light-logo.png')} style={styles.img} />
+      <Image source={require('./assets/react-logo.png')} style={styles.img} resizeMode='contain' />
       <Text style={{fontWeight: '900', fontSize: 17}}>Ldk Node React Native Demo</Text>
       <Image source={require('./assets/logo.png')} style={styles.img} />
     </View>
@@ -36,7 +36,7 @@ export const Header = () => {
 };
 
 export const MnemonicView = ({buildNodeCallback}: {buildNodeCallback: Function}) => {
-  const [mnemonic, setMnemonic] = useState('tackle pause sort ten task vast candy skill retire upset lend captain');
+  const [mnemonic, setMnemonic] = useState('');
   return (
     <View>
       <Text style={styles.boldText}>Enter Menmonic</Text>
@@ -56,11 +56,11 @@ export const IconButton = ({onPress, title, style}: {onPress: any; title: string
 
 export const OpenChannelModal = ({openChannelCallback, cancelCallback}: {openChannelCallback: ({}: ChannelParams) => {}; cancelCallback: any}) => {
   const [channelDetails, setChannelDetails] = useState({
-    nodeId: '02f42d9e57048ba366249c873ce7440cfaad783c249cbd4265b4eac62184d02eae',
-    ip: host,
-    port: '5001',
-    amount: '50000',
-    counterPartyAmount: '12365',
+    nodeId: '',
+    ip: '',
+    port: '',
+    amount: '',
+    counterPartyAmount: '',
   });
 
   const updateDetails = (key: any, value: any) => {

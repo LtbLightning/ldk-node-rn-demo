@@ -4,8 +4,8 @@ import {Menu, MenuOption, MenuOptions, MenuTrigger} from 'react-native-popup-men
 
 import {ChannelDetails} from 'ldk-node/lib/classes/Bindings';
 import {Node} from 'ldk-node';
-import {styles} from './styles';
-import { host } from './App';
+import {AppColors, styles} from './styles';
+import {host} from './App';
 
 export interface ChannelParams {
   nodeId: string;
@@ -17,26 +17,26 @@ export interface ChannelParams {
 
 const menuItems = ['Close', 'Send', 'Receive'];
 
-export const Button = ({loading, style, ...rest}: React.PropsWithChildren<ButtonProps & {loading?: boolean; style?: any}>) => {
+export const Button = ({loading, style, title, ...rest}: React.PropsWithChildren<ButtonProps & {loading?: boolean; style?: any}>) => {
   return (
-    <View style={{...styles.btn, ...style}}>
-      <Btn {...rest} color="white" />
-    </View>
+    <TouchableOpacity style={{...styles.btn, ...style}} {...rest}>
+      <Text style={{color: 'white'}}>{title}</Text>
+    </TouchableOpacity>
   );
 };
 
 export const Header = () => {
   return (
-    <View style={styles.row}>
-      <Image source={require('./assets/react-logo.png')} style={styles.img} resizeMode='contain' />
-      <Text style={{fontWeight: '900', fontSize: 17}}>Ldk Node React Native Demo</Text>
+    <View style={{...styles.row, paddingHorizontal: 25}}>
+      <Image source={require('./assets/react-logo.png')} style={styles.img} resizeMode="contain" />
+      <Text style={{fontWeight: '700', fontSize: 15, textAlign: 'center'}}>{`Demo App \n Ldk Node React Native`}</Text>
       <Image source={require('./assets/logo.png')} style={styles.img} />
     </View>
   );
 };
 
 export const MnemonicView = ({buildNodeCallback}: {buildNodeCallback: Function}) => {
-  const [mnemonic, setMnemonic] = useState('awkward fox lawn senior flavor cook genuine cake endorse rare walk this');
+  const [mnemonic, setMnemonic] = useState('');
   return (
     <View>
       <Text style={styles.boldText}>Enter Menmonic</Text>
@@ -46,10 +46,10 @@ export const MnemonicView = ({buildNodeCallback}: {buildNodeCallback: Function})
   );
 };
 
-export const IconButton = ({onPress, title, style}: {onPress: any; title: string; style?: any}) => {
+export const IconButton = ({onPress, title, style, disabled}: {onPress: any; title: string; style?: any; disabled?: boolean}) => {
   return (
-    <TouchableOpacity style={{...styles.plusButton, ...style}} onPress={onPress}>
-      <Text style={styles.boldText}>{title}</Text>
+    <TouchableOpacity style={{...styles.smallButton, ...style}} onPress={onPress} disabled={disabled} activeOpacity={disabled ? 1 : 0.7}>
+      <Text style={{color: disabled ? '#999' : 'black'}}>{title}</Text>
     </TouchableOpacity>
   );
 };
@@ -73,7 +73,7 @@ export const OpenChannelModal = ({openChannelCallback, cancelCallback}: {openCha
     <ModalView>
       <Fragment>
         <IconButton onPress={cancelCallback} title="X" style={styles.closeButton} />
-        <Text style={{...styles.leftAlign, ...styles.boldText}}>Open Channel</Text>
+        <Text style={{...styles.leftAlign, ...styles.boldNormal}}>Open Channel</Text>
         <TextInput style={styles.textInput} placeholder="Node Id" onChangeText={e => updateDetails('nodeId', e)} value={channelDetails.nodeId} />
         <TextInput style={styles.textInput} placeholder="Ip Address" onChangeText={e => updateDetails('ip', e)} value={channelDetails.ip} />
         <TextInput style={styles.textInput} placeholder="Port" onChangeText={e => updateDetails('port', e)} value={channelDetails.port} />
@@ -101,14 +101,15 @@ export const ModalView = (props: any) => {
 };
 
 export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<ChannelDetails> | undefined; menuItemCallback: Function}) => {
-  if (channels?.length == 0) return <Text style={{alignSelf: 'center'}}>No Open Channels</Text>;
+  if (!channels?.length) return <Text style={{alignSelf: 'center'}}>No Open Channels</Text>;
   return (
     <Fragment>
       {channels?.map((channel, channelIndex) => {
+        let isReady = channel.isChannelReady && channel.isUsable;
         return (
-          <View key={channelIndex} style={styles.channelListView}>
+          <View key={channelIndex} style={{...styles.channelListView, backgroundColor: channelIndex % 2 == 0 ? AppColors.grey : 'white'}}>
             <View style={styles.channelSideView}>
-              {channel.isChannelReady && channel.isUsable ? (
+              {isReady ? (
                 <Image source={require('./assets/complete.png')} style={styles.channelIcon} />
               ) : (
                 <Image source={require('./assets/waiting.png')} style={styles.channelIcon} />
@@ -116,24 +117,21 @@ export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<
               <Text>{`${channel.confirmations} / ${channel.confirmationsRequired}`}</Text>
             </View>
             <View style={styles.channelMainView}>
-              <Text style={styles.boldText}>{channel.channelId.channelIdHex}</Text>
-              <Text>Balance: {channel.balanceMsat} SATS</Text>
-              <Text>Outbond Capacity: {channel.outboundCapacityMsat} MSATS</Text>
+              <Text style={{fontSize: 12, fontWeight: 'bold'}}>{channel.channelId.channelIdHex}</Text>
+              <View>
+                <BoxRow title="Local" value={channel.balanceMsat} color={AppColors.green} />
+                <View style={{flexDirection: 'row'}}>
+                  <BoxRow title="Capacity" value={channel.inboundCapacityMsat} color={AppColors.blue} />
+                  <Text> </Text>
+                  <BoxRow title="Outbound" value={channel.outboundCapacityMsat} color={AppColors.blue} />
+                </View>
+              </View>
+              <View style={{flexDirection: 'row', marginVertical: 5}}>
+                <IconButton onPress={() => menuItemCallback(1, channelIndex)} title="Send" style={styles.channelButton} disabled={!isReady} />
+                <IconButton onPress={() => menuItemCallback(2, channelIndex)} title="Receive" style={styles.channelButton} disabled={!isReady} />
+                <IconButton onPress={() => menuItemCallback(0, channelIndex)} title="Close" style={styles.channelButton} disabled={!isReady} />
+              </View>
             </View>
-            <TouchableOpacity style={styles.channelSideView}>
-              {channel?.isChannelReady && (
-                <Menu>
-                  <MenuTrigger>
-                    <Text style={styles.menuItem}>...</Text>
-                  </MenuTrigger>
-                  <MenuOptions>
-                    {menuItems.map((item, index) => (
-                      <MenuOption onSelect={() => menuItemCallback(index, channelIndex)} text={item} key={index} />
-                    ))}
-                  </MenuOptions>
-                </Menu>
-              )}
-            </TouchableOpacity>
           </View>
         );
       })}
@@ -158,5 +156,16 @@ export const PaymentModal = ({index, hide, node}: {index: number; hide: Function
       <Button title="Submit" style={styles.fullWidthBtn} onPress={handleSubmit} />
       <Text selectable>{response}</Text>
     </ModalView>
+  );
+};
+
+export const BoxRow = ({title, value, color}: {title: string; value: any; color?: string}) => {
+  return (
+    <View style={styles.boxRow}>
+      <Text style={{...styles.boldNormal, color: color ?? 'black'}}>{`${title}: `}</Text>
+      <Text selectable style={{color: color ?? 'black', fontSize: 12}}>
+        {value}
+      </Text>
+    </View>
   );
 };

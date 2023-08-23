@@ -2,7 +2,7 @@ import {Builder, Config, Node} from 'ldk-node';
 import {ChannelDetails, NetAddress} from 'ldk-node/lib/classes/Bindings';
 import {Fragment, useState} from 'react';
 import {SafeAreaView, ScrollView, Text, View} from 'react-native';
-import {Button, ChannelParams, ChannelsListView, Header, IconButton, MnemonicView, OpenChannelModal, PaymentModal} from './components';
+import {BoxRow, Button, ChannelParams, ChannelsListView, Header, IconButton, MnemonicView, OpenChannelModal, PaymentModal} from './components';
 
 import RNFS from 'react-native-fs';
 import {MenuProvider} from 'react-native-popup-menu';
@@ -19,7 +19,7 @@ export const App = (): JSX.Element => {
   const [node, setNode] = useState<Node>();
   const [nodeInfo, setNodeInfo] = useState({nodeId: '', listeningAddress: ''});
   const [balance, setBalance] = useState<any>('0.0');
-  const [onChainAddress, setOnChainAddress] = useState<any>();
+  const [onChainAddress, setOnChainAddress] = useState<any>(' ');
   const [showChannelModal, setShowChannelModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPaymentIndex, setSelectedPaymentIndex] = useState(0);
@@ -29,10 +29,9 @@ export const App = (): JSX.Element => {
   const buildNode = async (mnemonic: string) => {
     try {
       const storagePath = docDir + CryptoJS.MD5(mnemonic);
-      const config = await new Config().create(storagePath, 'regtest', new NetAddress(host, 2000));
+      const config = await new Config().create(storagePath, 'regtest', new NetAddress(host, 5000));
       const builder = await new Builder().fromConfig(config);
       await builder.setEsploraServer(esploaraServer);
-
 
       await builder.setEntropyBip39Mnemonic(mnemonic);
       const nodeObj: Node = await builder.build();
@@ -42,7 +41,7 @@ export const App = (): JSX.Element => {
       /*=====Get/Set Node Info*/
       let nodeId = await nodeObj.nodeId();
       let listeningAddr = await nodeObj.listeningAddress();
-      setNodeInfo({nodeId: nodeId.keyHex, listeningAddress: `${listeningAddr?.ip}: ${listeningAddr?.port}`});
+      setNodeInfo({nodeId: nodeId.keyHex, listeningAddress: `${listeningAddr?.ip}:${listeningAddr?.port}`});
     } catch (e) {
       console.log('Error in starting and build Node:', e);
     }
@@ -100,33 +99,26 @@ export const App = (): JSX.Element => {
 
   return (
     <MenuProvider>
-      <SafeAreaView style={{paddingBottom: 70}}>
+      <SafeAreaView style={styles.safeArea}>
         <Header />
         <View style={styles.container}>
           {!started ? (
             <MnemonicView buildNodeCallback={buildNode} />
           ) : (
-            <ScrollView>
-              <Text style={styles.greenText}>Node started successfully....</Text>
+            <ScrollView style={{minHeight: '100%'}}>
               <View style={styles.responseBox}>
                 <Text style={styles.balanceText}>{balance / 100000000} BTC</Text>
-                <Text>Listening Address: {nodeInfo.listeningAddress}</Text>
-                <Text>Node ID:</Text>
-                <Text selectable>{nodeInfo.nodeId}</Text>
-                {onChainAddress && (
-                  <Fragment>
-                    <Text>New Address:</Text>
-                    <Text selectable>{onChainAddress}</Text>
-                  </Fragment>
-                )}
+                <BoxRow title="Listening Address" value={nodeInfo.listeningAddress} />
+                <BoxRow title="Node ID" value={nodeInfo.nodeId} />
+                <BoxRow title="Funding Address" value={onChainAddress} />
               </View>
 
               <Button title="On Chain Balance" onPress={onChainBalance} />
               <Button title="New Funding Address" onPress={newOnchainAddress} />
               <Button title="List Channels" onPress={listChannels} />
               <View style={styles.row}>
-                <Text style={styles.boldText}>Channels</Text>
-                <IconButton onPress={() => setShowChannelModal(true)} title="+" />
+                <Text style={styles.boldNormal}>Channels</Text>
+                <IconButton onPress={() => setShowChannelModal(true)} title="Add Channel +" />
               </View>
               <ChannelsListView channels={channels} menuItemCallback={handleMenuItemCallback} />
             </ScrollView>

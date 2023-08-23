@@ -20,7 +20,7 @@ const menuItems = ['Close', 'Send', 'Receive'];
 export const Button = ({loading, style, title, ...rest}: React.PropsWithChildren<ButtonProps & {loading?: boolean; style?: any}>) => {
   return (
     <TouchableOpacity style={{...styles.btn, ...style}} {...rest}>
-      <Text style={{color: 'white'}}>{title}</Text>
+      <Text style={{color: 'white', fontSize: 17}}>{title}</Text>
     </TouchableOpacity>
   );
 };

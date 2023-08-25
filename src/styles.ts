@@ -1,9 +1,25 @@
 import {StyleSheet} from 'react-native';
 
-export const AppColors = {blue: '#00bbf9', grey: '#FAFAFA', green: 'green', red: 'red', lightBlue: '#BDEFFF'};
+export const AppColors = {
+  blue: '#007BFF',
+  grey: '#FAFAFA',
+  teal: '#008080',
+  mutedPurple: '#9370DB',
+  lightBlue: '#BDEFFF',
+  green: '#28a745',
+  red: '#dc3545',
+  buttonOrange: '#fd7e14',
+};
 export const borderRadius = 12;
 
 export const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    resizeMode: 'cover',
+  },
   container: {padding: 10},
   safeArea: {marginBottom: 130},
   row: {
@@ -13,42 +29,55 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 5,
   },
-  img: {width: 30, height: 30, borderRadius: 50},
+  img: {
+    width: 35,
+    height: 35,
+    borderRadius: 50,
+    backgroundColor: 'white',
+  },
   responseBox: {
-    borderWidth: 4,
+    borderWidth: 2,
     borderColor: AppColors.blue,
     padding: 5,
-    backgroundColor: AppColors.lightBlue,
     borderRadius: borderRadius,
     marginVertical: 10,
     minHeight: 140,
     marginHorizontal: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
   btn: {
     backgroundColor: AppColors.blue,
     color: 'white',
+    fontWeight: 'bold',
     borderRadius: borderRadius,
-    margin: 5,
+    margin: 7,
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  smallButton: {
+    backgroundColor: AppColors.buttonOrange,
+    padding: 3,
+    paddingHorizontal: 7,
+    borderWidth: 1,
+    borderRadius: 4,
+    borderColor: AppColors.blue,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 1,
     },
     shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-
-    elevation: 2,
+    shadowRadius: 2.22,
+    elevation: 3,
   },
-  smallButton: {
-    padding: 3,
-    paddingHorizontal: 7,
-    borderWidth: 1,
-    borderRadius: 4,
-    borderColor: AppColors.blue,
-  },
-
   balanceText: {fontWeight: '900', fontSize: 25, color: AppColors.blue},
   boldText: {fontWeight: '700', fontSize: 15},
   greenText: {color: 'green'},
@@ -89,7 +118,7 @@ export const styles = StyleSheet.create({
   channelMainView: {width: '85%'},
   menuItem: {fontSize: 35, color: 'grey', marginTop: -25, marginLeft: 4},
   fullWidthBtn: {width: '100%'},
-  closeButton: {position: 'absolute', right: 10, top: 10},
+  closeButton: {backgroundColor: AppColors.grey, position: 'absolute', right: 10, top: 10},
   leftAlign: {alignSelf: 'flex-start'},
 
   boxRow: {

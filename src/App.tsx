@@ -1,7 +1,7 @@
 import {Builder, Config, Node} from 'ldk-node';
 import {ChannelDetails, NetAddress} from 'ldk-node/lib/classes/Bindings';
 import {Fragment, useState} from 'react';
-import {SafeAreaView, ScrollView, Text, View} from 'react-native';
+import {SafeAreaView, ScrollView, Text, View, ImageBackground} from 'react-native';
 import {BoxRow, Button, ChannelParams, ChannelsListView, Header, IconButton, MnemonicView, OpenChannelModal, PaymentModal} from './components';
 
 import RNFS from 'react-native-fs';
@@ -89,8 +89,9 @@ export const App = (): JSX.Element => {
 
   const handleMenuItemCallback = async (index: number, channelIndex: number) => {
     setSelectedPaymentIndex(index);
-    if (index > 0) setShowPaymentModal(true);
-    else {
+    if (index > 0) {
+      setShowPaymentModal(true);
+    } else {
       let currentChannel = channels[channelIndex];
       await node?.closeChannel(currentChannel?.channelId, currentChannel.counterpartyNodeId);
       await listChannels();
@@ -98,35 +99,37 @@ export const App = (): JSX.Element => {
   };
 
   return (
-    <MenuProvider>
-      <SafeAreaView style={styles.safeArea}>
-        <Header />
-        <View style={styles.container}>
-          {!started ? (
-            <MnemonicView buildNodeCallback={buildNode} />
-          ) : (
-            <ScrollView style={{minHeight: '100%'}}>
-              <View style={styles.responseBox}>
-                <Text style={styles.balanceText}>{balance / 100000000} BTC</Text>
-                <BoxRow title="Listening Address" value={nodeInfo.listeningAddress} />
-                <BoxRow title="Node ID" value={nodeInfo.nodeId} />
-                <BoxRow title="Funding Address" value={onChainAddress} />
-              </View>
+    <ImageBackground source={require('./assets/background.png')} style={styles.backgroundImage}>
+      <MenuProvider>
+        <SafeAreaView style={styles.safeArea}>
+          <Header />
+          <View style={styles.container}>
+            {!started ? (
+              <MnemonicView buildNodeCallback={buildNode} />
+            ) : (
+              <ScrollView style={{minHeight: '100%'}}>
+                <View style={styles.responseBox}>
+                  <Text style={styles.balanceText}>{balance / 100000000} BTC</Text>
+                  <BoxRow title="Listening Address" value={nodeInfo.listeningAddress} />
+                  <BoxRow title="Node ID" value={nodeInfo.nodeId} />
+                  <BoxRow title="Funding Address" value={onChainAddress} />
+                </View>
 
-              <Button title="On Chain Balance" onPress={onChainBalance} />
-              <Button title="New Funding Address" onPress={newOnchainAddress} />
-              <Button title="List Channels" onPress={listChannels} />
-              <View style={styles.row}>
-                <Text style={styles.boldNormal}>Channels</Text>
-                <IconButton onPress={() => setShowChannelModal(true)} title="Add Channel +" />
-              </View>
-              <ChannelsListView channels={channels} menuItemCallback={handleMenuItemCallback} />
-            </ScrollView>
-          )}
-        </View>
-        {showChannelModal && <OpenChannelModal openChannelCallback={openChannelCallback} cancelCallback={() => setShowChannelModal(false)} />}
-        {showPaymentModal && <PaymentModal index={selectedPaymentIndex} hide={() => setShowPaymentModal(false)} node={node} />}
-      </SafeAreaView>
-    </MenuProvider>
+                <Button title="On Chain Balance" onPress={onChainBalance} />
+                <Button title="New Funding Address" onPress={newOnchainAddress} />
+                <Button title="List Channels" onPress={listChannels} />
+                <View style={styles.row}>
+                  <Text style={styles.boldNormal}>Channels</Text>
+                  <IconButton onPress={() => setShowChannelModal(true)} title=" + Channel" />
+                </View>
+                <ChannelsListView channels={channels} menuItemCallback={handleMenuItemCallback} />
+              </ScrollView>
+            )}
+          </View>
+          {showChannelModal && <OpenChannelModal openChannelCallback={openChannelCallback} cancelCallback={() => setShowChannelModal(false)} />}
+          {showPaymentModal && <PaymentModal index={selectedPaymentIndex} hide={() => setShowPaymentModal(false)} node={node} />}
+        </SafeAreaView>
+      </MenuProvider>
+    </ImageBackground>
   );
 };

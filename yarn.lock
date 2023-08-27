@@ -4598,8 +4598,8 @@ kleur@^3.0.3:
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-3.0.3.tgz#a79c9ecc86ee1ce3fa6206d1216c501f147fc07e"
   integrity sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==
 
-"ldk-node@file:../ldk-node":
-  version "0.1.0"
+"ldk-node@file:../ldk-node-rn":
+  version "0.1.1"
   dependencies:
     adm-zip "^0.5.9"
     request "^2.88.2"

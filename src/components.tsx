@@ -49,7 +49,7 @@ export const MnemonicView = ({buildNodeCallback}: {buildNodeCallback: Function})
 export const IconButton = ({onPress, title, style, disabled}: {onPress: any; title: string; style?: any; disabled?: boolean}) => {
   return (
     <TouchableOpacity style={{...styles.smallButton, ...style}} onPress={onPress} disabled={disabled} activeOpacity={disabled ? 1 : 0.7}>
-      <Text style={{color: disabled ? '#999' : 'black'}}>{title}</Text>
+      <Text style={{color: disabled ? '#7F8C8D' : 'black'}}>{title}</Text>
     </TouchableOpacity>
   );
 };
@@ -107,7 +107,7 @@ export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<
       {channels?.map((channel, channelIndex) => {
         let isReady = channel.isChannelReady && channel.isUsable;
         return (
-          <View key={channelIndex} style={{...styles.channelListView, backgroundColor: channelIndex % 2 == 0 ? AppColors.grey : 'white'}}>
+          <View key={channelIndex} style={{...styles.channelListView, backgroundColor: 'rgba(255, 255, 255, 0.7)', borderRadius: 12}}>
             <View style={styles.channelSideView}>
               {isReady ? (
                 <Image source={require('./assets/complete.png')} style={styles.channelIcon} />
@@ -119,11 +119,14 @@ export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<
             <View style={styles.channelMainView}>
               <Text style={{fontSize: 12, fontWeight: 'bold'}}>{channel.channelId.channelIdHex}</Text>
               <View>
-                <BoxRow title="Local" value={channel.balanceMsat} color={AppColors.green} />
+              <View style={{flexDirection: 'row'}}>
+                <BoxRow title="Capacity" value={channel.channelValueSats} color={AppColors.blue} />
+                <BoxRow title="     Local Balance" value={channel.outboundCapacityMsat} color={AppColors.green} />
+                </View>
                 <View style={{flexDirection: 'row'}}>
-                  <BoxRow title="Capacity" value={channel.inboundCapacityMsat} color={AppColors.blue} />
-                  <Text> </Text>
-                  <BoxRow title="Outbound" value={channel.outboundCapacityMsat} color={AppColors.blue} />
+                  <BoxRow title="Inbount" value={channel.inboundCapacityMsat} color={AppColors.green} />
+                  <Text>             </Text>
+                  <BoxRow title="  Outbound" value={channel.outboundCapacityMsat} color={AppColors.red} />
                 </View>
               </View>
               <View style={{flexDirection: 'row', marginVertical: 5}}>

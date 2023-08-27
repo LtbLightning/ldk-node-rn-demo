@@ -10,7 +10,6 @@ export const AppColors = {
   red: '#dc3545',
   buttonOrange: '#fd7e14',
 };
-export const borderRadius = 12;
 
 export const styles = StyleSheet.create({
   backgroundImage: {
@@ -39,17 +38,25 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: AppColors.blue,
     padding: 5,
-    borderRadius: borderRadius,
+    borderRadius: 12,
     marginVertical: 10,
     minHeight: 140,
     marginHorizontal: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   btn: {
     backgroundColor: AppColors.blue,
     color: 'white',
     fontWeight: 'bold',
-    borderRadius: borderRadius,
+    borderRadius: 12,
     margin: 7,
     alignItems: 'center',
     paddingVertical: 12,
@@ -64,11 +71,12 @@ export const styles = StyleSheet.create({
   },
   smallButton: {
     backgroundColor: AppColors.buttonOrange,
+    borderColor: AppColors.blue,
     padding: 3,
     paddingHorizontal: 7,
     borderWidth: 1,
     borderRadius: 4,
-    borderColor: AppColors.blue,
+
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -90,7 +98,7 @@ export const styles = StyleSheet.create({
   modalView: {
     margin: 20,
     backgroundColor: 'white',
-    borderRadius: borderRadius,
+    borderRadius: 12,
     padding: 20,
     alignItems: 'center',
     shadowColor: '#000',
@@ -107,18 +115,24 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     width: '100%',
-    borderRadius: borderRadius,
+    borderRadius: 12,
     marginVertical: 10,
     borderColor: AppColors.blue,
-    backgroundColor: AppColors.lightBlue,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
   channelListView: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10},
   channelIcon: {width: 25, height: 25},
   channelSideView: {width: '10%'},
   channelMainView: {width: '85%'},
-  menuItem: {fontSize: 35, color: 'grey', marginTop: -25, marginLeft: 4},
+  menuItem: {
+    backgroundColor: AppColors.buttonOrange,
+    borderColor: AppColors.blue,
+    fontSize: 35,
+    marginTop: -25,
+    marginLeft: 4,
+  },
   fullWidthBtn: {width: '100%'},
-  closeButton: {backgroundColor: AppColors.grey, position: 'absolute', right: 10, top: 10},
+  closeButton: {backgroundColor: AppColors.buttonOrange, position: 'absolute', right: 10, top: 10},
   leftAlign: {alignSelf: 'flex-start'},
 
   boxRow: {

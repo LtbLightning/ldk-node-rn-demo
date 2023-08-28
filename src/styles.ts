@@ -29,9 +29,9 @@ export const styles = StyleSheet.create({
     marginTop: 5,
   },
   img: {
-    width: 35,
-    height: 35,
-    borderRadius: 50,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: 'white',
   },
   responseBox: {

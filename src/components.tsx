@@ -28,9 +28,9 @@ export const Button = ({loading, style, title, ...rest}: React.PropsWithChildren
 export const Header = () => {
   return (
     <View style={{...styles.row, paddingHorizontal: 25}}>
-      <Image source={require('./assets/react-logo.png')} style={styles.img} resizeMode="contain" />
-      <Text style={{fontWeight: '700', fontSize: 15, textAlign: 'center'}}>{`Demo App \n Ldk Node React Native`}</Text>
-      <Image source={require('./assets/logo.png')} style={styles.img} />
+      <Image source={require('./assets/reactnative_logo.png')} style={styles.img} resizeMode="contain" />
+      <Text style={{fontWeight: '700', fontSize: 15, textAlign: 'center'}}>{'Demo App \n Ldk Node React Native'}</Text>
+      <Image source={require('./assets/ldk_logo.png')} style={styles.img} />
     </View>
   );
 };
@@ -101,7 +101,9 @@ export const ModalView = (props: any) => {
 };
 
 export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<ChannelDetails> | undefined; menuItemCallback: Function}) => {
-  if (!channels?.length) return <Text style={{alignSelf: 'center'}}>No Open Channels</Text>;
+  if (!channels?.length) {
+    return <Text style={{alignSelf: 'center'}}>No Open Channels</Text>;
+  }
   return (
     <Fragment>
       {channels?.map((channel, channelIndex) => {
@@ -119,13 +121,13 @@ export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<
             <View style={styles.channelMainView}>
               <Text style={{fontSize: 12, fontWeight: 'bold'}}>{channel.channelId.channelIdHex}</Text>
               <View>
-              <View style={{flexDirection: 'row'}}>
-                <BoxRow title="Capacity" value={channel.channelValueSats} color={AppColors.blue} />
-                <BoxRow title="     Local Balance" value={channel.outboundCapacityMsat} color={AppColors.green} />
+                <View style={{flexDirection: 'row'}}>
+                  <BoxRow title="Capacity" value={channel.channelValueSats} color={AppColors.blue} />
+                  <BoxRow title="     Local Balance" value={channel.outboundCapacityMsat} color={AppColors.green} />
                 </View>
                 <View style={{flexDirection: 'row'}}>
                   <BoxRow title="Inbount" value={channel.inboundCapacityMsat} color={AppColors.green} />
-                  <Text>             </Text>
+                  <Text> </Text>
                   <BoxRow title="  Outbound" value={channel.outboundCapacityMsat} color={AppColors.red} />
                 </View>
               </View>

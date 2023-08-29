@@ -121,13 +121,13 @@ export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<
             <View style={styles.channelMainView}>
               <Text style={{fontSize: 12, fontWeight: 'bold'}}>{channel.channelId.channelIdHex}</Text>
               <View>
-                <View style={{flexDirection: 'row'}}>
-                  <BoxRow title="Capacity" value={channel.channelValueSats} color={AppColors.blue} />
-                  <BoxRow title="     Local Balance" value={channel.outboundCapacityMsat} color={AppColors.green} />
+              <View style={{flexDirection: 'row'}}>
+                <BoxRow title="Capacity" value={channel.channelValueSats} color={AppColors.blue} />
+                <BoxRow title="     Local Balance" value={channel.balanceMsat} color={AppColors.green} />
                 </View>
                 <View style={{flexDirection: 'row'}}>
-                  <BoxRow title="Inbount" value={channel.inboundCapacityMsat} color={AppColors.green} />
-                  <Text> </Text>
+                  <BoxRow title="Inbound" value={channel.inboundCapacityMsat} color={AppColors.green} />
+                  <Text>{"             "}</Text>
                   <BoxRow title="  Outbound" value={channel.outboundCapacityMsat} color={AppColors.red} />
                 </View>
               </View>

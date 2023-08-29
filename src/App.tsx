@@ -29,7 +29,7 @@ export const App = (): JSX.Element => {
   const buildNode = async (mnemonic: string) => {
     try {
       const storagePath = docDir + CryptoJS.MD5(mnemonic);
-      const config = await new Config().create(storagePath, 'regtest', new NetAddress(host, 5000));
+      const config = await new Config().create(storagePath, 'regtest', new NetAddress(host, 5001));
       const builder = await new Builder().fromConfig(config);
       await builder.setEsploraServer(esploaraServer);
 

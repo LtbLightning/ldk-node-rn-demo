@@ -10,7 +10,7 @@ import {styles} from './styles';
 import CryptoJS from 'react-native-crypto-js';
 
 let docDir = RNFS.DocumentDirectoryPath + '/';
-export let host = '127.0.0.1';
+export let host = '192.168.2.11';
 let port = 30000;
 let esploaraServer = `http://${host}:${port}`;
 

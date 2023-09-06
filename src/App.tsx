@@ -7,10 +7,9 @@ import {BoxRow, Button, ChannelParams, ChannelsListView, Header, IconButton, Mne
 import RNFS from 'react-native-fs';
 import {MenuProvider} from 'react-native-popup-menu';
 import {styles} from './styles';
-import CryptoJS from 'react-native-crypto-js';
 
-let docDir = RNFS.DocumentDirectoryPath + '/';
-export let host = '192.168.2.11';
+let docDir = RNFS.DocumentDirectoryPath + '/LDK_NODE/';
+export let host = '127.0.0.1';
 let port = 30000;
 let esploaraServer = `http://${host}:${port}`;
 
@@ -28,8 +27,9 @@ export const App = (): JSX.Element => {
 
   const buildNode = async (mnemonic: string) => {
     try {
-      const storagePath = docDir + CryptoJS.MD5(mnemonic);
-      const config = await new Config().create(storagePath, 'regtest', new NetAddress(host, 5001));
+      const storagePath = docDir;
+      console.log('Storage Path: ', storagePath);
+      const config = await new Config().create(storagePath, 'regtest', new NetAddress(host, 3003));
       const builder = await new Builder().fromConfig(config);
       await builder.setEsploraServer(esploaraServer);
 

@@ -45,13 +45,13 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     shadowColor: '#000',
     shadowOffset: {
-      width: 0,
-      height: 2,
+      width: 5,
+      height: 5,
     },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 0,
-    textAlignVertical: "top"
+    shadowRadius: 4,
+    elevation: 5,
+    textAlignVertical: 'top',
   },
   btn: {
     backgroundColor: AppColors.blue,
@@ -63,11 +63,11 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
     shadowColor: '#000',
     shadowOffset: {
-      width: 0,
-      height: 2,
+      width: 3,
+      height: 3,
     },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowRadius: 4,
     elevation: 5,
   },
   smallButton: {

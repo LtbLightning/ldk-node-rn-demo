@@ -1,11 +1,9 @@
-import {Button as Btn, ButtonProps, Image, Modal, Pressable, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {ButtonProps, Image, Modal, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Fragment, useState} from 'react';
-import {Menu, MenuOption, MenuOptions, MenuTrigger} from 'react-native-popup-menu';
 
 import {ChannelDetails} from 'ldk-node/lib/classes/Bindings';
 import {Node} from 'ldk-node';
 import {AppColors, styles} from './styles';
-import {host} from './App';
 
 export interface ChannelParams {
   nodeId: string;
@@ -27,7 +25,7 @@ export const Button = ({loading, style, title, ...rest}: React.PropsWithChildren
 
 export const Header = () => {
   return (
-    <View style={{...styles.row, paddingHorizontal: 25}}>
+    <View style={{...styles.row, paddingHorizontal: 25, marginTop: -20}}>
       <Image source={require('./assets/reactnative_logo.png')} style={styles.img} resizeMode="contain" />
       <Text style={{fontWeight: '700', fontSize: 15, textAlign: 'center'}}>{'Demo App \n Ldk Node React Native'}</Text>
       <Image source={require('./assets/ldk_logo.png')} style={styles.img} />
@@ -41,7 +39,7 @@ export const MnemonicView = ({buildNodeCallback}: {buildNodeCallback: Function})
     <View>
       <Text style={styles.boldText}>Enter Menmonic</Text>
       <TextInput multiline style={styles.responseBox} onChangeText={setMnemonic} value={mnemonic} />
-      {mnemonic != '' && <Button title="Build and Start Node" onPress={() => buildNodeCallback(mnemonic)} />}
+      {mnemonic != '' && <Button title="Start Node" onPress={() => buildNodeCallback(mnemonic)} />}
     </View>
   );
 };
@@ -121,14 +119,14 @@ export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<
             <View style={styles.channelMainView}>
               <Text style={{fontSize: 12, fontWeight: 'bold'}}>{channel.channelId.channelIdHex}</Text>
               <View>
-              <View style={{flexDirection: 'row'}}>
-                <BoxRow title="Capacity" value={channel.channelValueSats} color={AppColors.blue} />
-                <BoxRow title="     Local Balance" value={channel.balanceMsat} color={AppColors.green} />
+                <View style={{flexDirection: 'row'}}>
+                  <BoxRow title="Capacity" value={channel.channelValueSats} color={AppColors.blue} />
+                  <BoxRow title="     Local Balance" value={channel.balanceMsat / 1000} color={AppColors.green} />
                 </View>
                 <View style={{flexDirection: 'row'}}>
-                  <BoxRow title="Inbound" value={channel.inboundCapacityMsat} color={AppColors.green} />
-                  <Text>{"             "}</Text>
-                  <BoxRow title="  Outbound" value={channel.outboundCapacityMsat} color={AppColors.red} />
+                  <BoxRow title="Inbound" value={channel.inboundCapacityMsat / 1000} color={AppColors.green} />
+                  <Text>{'             '}</Text>
+                  <BoxRow title="  Outbound" value={channel.outboundCapacityMsat / 1000} color={AppColors.red} />
                 </View>
               </View>
               <View style={{flexDirection: 'row', marginVertical: 5}}>
@@ -152,13 +150,14 @@ export const PaymentModal = ({index, hide, node}: {index: number; hide: Function
     setValue('');
     let res = isSend ? await node?.sendPayment(value) : await node?.receivePayment(parseInt(value), 'Test Memo', 150);
     setResponse(JSON.stringify(res));
+    isSend && hide();
   };
   return (
     <ModalView>
       <IconButton onPress={hide} title="X" style={styles.closeButton} />
       <Text style={{...styles.leftAlign, ...styles.boldText}}>{menuItems[index]}</Text>
       <TextInput style={styles.textInput} placeholder={isSend ? 'Invoice' : 'Amount'} onChangeText={setValue} value={value} multiline />
-      <Button title="Submit" style={styles.fullWidthBtn} onPress={handleSubmit} />
+      <Button title={isSend ? 'Send' : 'Receive'} style={styles.fullWidthBtn} onPress={handleSubmit} />
       <Text selectable>{response}</Text>
     </ModalView>
   );

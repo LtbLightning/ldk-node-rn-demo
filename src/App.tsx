@@ -1,8 +1,19 @@
-import {Builder, Config, Node} from 'ldk-node';
-import {ChannelDetails, NetAddress} from 'ldk-node/lib/classes/Bindings';
+import {Builder, Config, Node} from 'ldk-node-rn';
+import {ChannelDetails, NetAddress} from 'ldk-node-rn/lib/classes/Bindings';
 import {Fragment, useState} from 'react';
 import {SafeAreaView, ScrollView, Text, View, ImageBackground} from 'react-native';
-import {BoxRow, Button, ChannelParams, ChannelsListView, Header, IconButton, MnemonicView, OpenChannelModal, PaymentModal} from './components';
+import {
+  BoxRow,
+  Button,
+  ChannelParams,
+  ChannelsListView,
+  Header,
+  IconButton,
+  MnemonicView,
+  OpenChannelModal,
+  PaymentModal,
+  satsToMsats,
+} from './components';
 
 import RNFS from 'react-native-fs';
 import {MenuProvider} from 'react-native-popup-menu';
@@ -11,7 +22,8 @@ import {styles} from './styles';
 let docDir = RNFS.DocumentDirectoryPath + '/LDK_NODE/';
 export let host = '127.0.0.1';
 let port = 30000;
-let esploaraServer = `http://${host}:${port}`;
+let esploaraServer = `http://192.168.8.126:${port}`;
+// let esploaraServer = `https://mempool.space/testnet/api`;
 
 export const App = (): JSX.Element => {
   const [started, setStarted] = useState(false);
@@ -29,7 +41,7 @@ export const App = (): JSX.Element => {
     try {
       const storagePath = docDir;
       console.log('Storage Path: ', storagePath);
-      const config = await new Config().create(storagePath, 'regtest', new NetAddress(host, 3003));
+      const config = await new Config().create(storagePath, 'regtest', new NetAddress(host, 2000));
       const builder = await new Builder().fromConfig(config);
       await builder.setEsploraServer(esploaraServer);
 
@@ -69,7 +81,14 @@ export const App = (): JSX.Element => {
     try {
       let addr = new NetAddress(params.ip, parseInt(params.port));
       // await node?.connect(params.nodeId, addr, false);
-      let opened = await node?.connectOpenChannel(params.nodeId, addr, parseInt(params.amount), parseInt(params.counterPartyAmount), null, true);
+      let opened = await node?.connectOpenChannel(
+        params.nodeId,
+        addr,
+        parseInt(params.amount),
+        satsToMsats(parseInt(params.counterPartyAmount)),
+        null,
+        true,
+      );
       console.log('Channel opened', opened);
       setShowChannelModal(false);
     } catch (e) {
@@ -80,7 +99,7 @@ export const App = (): JSX.Element => {
   const listChannels = async () => {
     try {
       const list = await node?.listChannels();
-      console.log('Channels', list);
+      console.log('Channels===>', list);
       setChannels(list);
     } catch (e) {
       console.log('Error in syncing wallet:', e);

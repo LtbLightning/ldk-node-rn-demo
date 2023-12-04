@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
-    "ios": "react-native run-ios --simulator='iPhone 14 Pro'",
+    "ios": "react-native run-ios --simulator='iPhone 15'",
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest"
   },
   "dependencies": {
-    "ldk-node": "file:./../ldk-node-rn",
+    "ldk-node-rn": "^0.1.1",
     "react": "18.2.0",
     "react-native": "0.72.3",
     "react-native-crypto-js": "^1.0.0",

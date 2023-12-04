@@ -1,9 +1,12 @@
 import {ButtonProps, Image, Modal, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Fragment, useState} from 'react';
 
-import {ChannelDetails} from 'ldk-node/lib/classes/Bindings';
-import {Node} from 'ldk-node';
+import {ChannelDetails} from 'ldk-node-rn/lib/classes/Bindings';
+import {Node} from 'ldk-node-rn';
 import {AppColors, styles} from './styles';
+
+export const satsToMsats = (sats: number) => sats * 1000;
+export const mSatsToSats = (mSats: number) => mSats / 1000 + 'sats';
 
 export interface ChannelParams {
   nodeId: string;
@@ -75,10 +78,15 @@ export const OpenChannelModal = ({openChannelCallback, cancelCallback}: {openCha
         <TextInput style={styles.textInput} placeholder="Node Id" onChangeText={e => updateDetails('nodeId', e)} value={channelDetails.nodeId} />
         <TextInput style={styles.textInput} placeholder="Ip Address" onChangeText={e => updateDetails('ip', e)} value={channelDetails.ip} />
         <TextInput style={styles.textInput} placeholder="Port" onChangeText={e => updateDetails('port', e)} value={channelDetails.port} />
-        <TextInput style={styles.textInput} placeholder="Amount" onChangeText={e => updateDetails('amount', e)} value={channelDetails.amount} />
         <TextInput
           style={styles.textInput}
-          placeholder="CounterPartyAmount"
+          placeholder="Amount in sats"
+          onChangeText={e => updateDetails('amount', e)}
+          value={channelDetails.amount}
+        />
+        <TextInput
+          style={styles.textInput}
+          placeholder="CounterPartyAmount in sats"
           onChangeText={e => updateDetails('counterPartyAmount', e)}
           value={channelDetails.counterPartyAmount}
         />
@@ -119,14 +127,13 @@ export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<
             <View style={styles.channelMainView}>
               <Text style={{fontSize: 12, fontWeight: 'bold'}}>{channel.channelId.channelIdHex}</Text>
               <View>
-                <View style={{flexDirection: 'row'}}>
-                  <BoxRow title="Capacity" value={channel.channelValueSats} color={AppColors.blue} />
-                  <BoxRow title="     Local Balance" value={channel.balanceMsat / 1000} color={AppColors.green} />
+                <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                  <BoxRow title="Capacity" value={`${channel.channelValueSats}sats`} color={AppColors.blue} />
+                  <BoxRow title="Local Balance" value={mSatsToSats(channel.balanceMsat)} color={AppColors.green} />
                 </View>
-                <View style={{flexDirection: 'row'}}>
-                  <BoxRow title="Inbound" value={channel.inboundCapacityMsat / 1000} color={AppColors.green} />
-                  <Text>{'             '}</Text>
-                  <BoxRow title="  Outbound" value={channel.outboundCapacityMsat / 1000} color={AppColors.red} />
+                <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                  <BoxRow title="Inbound" value={mSatsToSats(channel.inboundCapacityMsat)} color={AppColors.green} />
+                  <BoxRow title="Outbound" value={mSatsToSats(channel.outboundCapacityMsat)} color={AppColors.red} />
                 </View>
               </View>
               <View style={{flexDirection: 'row', marginVertical: 5}}>
@@ -148,15 +155,15 @@ export const PaymentModal = ({index, hide, node}: {index: number; hide: Function
   const isSend = index == 1;
   const handleSubmit = async () => {
     setValue('');
-    let res = isSend ? await node?.sendPayment(value) : await node?.receivePayment(parseInt(value), 'Test Memo', 150);
-    setResponse(JSON.stringify(res));
+    let res = isSend ? await node?.sendPayment(value) : await node?.receivePayment(satsToMsats(parseInt(value)), 'Test Memo', 150);
+    setResponse(JSON.stringify(res).replaceAll('"', ''));
     isSend && hide();
   };
   return (
     <ModalView>
       <IconButton onPress={hide} title="X" style={styles.closeButton} />
       <Text style={{...styles.leftAlign, ...styles.boldText}}>{menuItems[index]}</Text>
-      <TextInput style={styles.textInput} placeholder={isSend ? 'Invoice' : 'Amount'} onChangeText={setValue} value={value} multiline />
+      <TextInput style={styles.textInput} placeholder={isSend ? 'Invoice' : 'Amount in sats'} onChangeText={setValue} value={value} multiline />
       <Button title={isSend ? 'Send' : 'Receive'} style={styles.fullWidthBtn} onPress={handleSubmit} />
       <Text selectable>{response}</Text>
     </ModalView>

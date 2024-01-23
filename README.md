@@ -10,7 +10,7 @@ This is demo Application for ldk-node, which shows how to start node, open chann
 First, you will need to clone **code** from github repo.
 
 ```bash
-git clone https://github.com/LtbLightning/ldk-node-rn-demo.git
+git clone https://github.com/LtbLightning/Ldk-node-rn-demo.git
 ```
 
 ## Step 2: Install node modules and pods(for iOS only)

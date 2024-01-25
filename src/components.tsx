@@ -1,8 +1,8 @@
 import {ButtonProps, Image, Modal, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Fragment, useState} from 'react';
 
-import {ChannelDetails} from 'ldk-node-rn/lib/classes/Bindings';
-import {Node} from 'ldk-node-rn';
+import {ChannelDetails} from 'ldk-node/lib/classes/Bindings';
+import {Node} from 'ldk-node';
 import {AppColors, styles} from './styles';
 
 export const satsToMsats = (sats: number) => sats * 1000;
@@ -37,7 +37,7 @@ export const Header = () => {
 };
 
 export const MnemonicView = ({buildNodeCallback}: {buildNodeCallback: Function}) => {
-  const [mnemonic, setMnemonic] = useState('awkward fox lawn senior flavor cook genuine cake endorse rare walk this');
+  const [mnemonic, setMnemonic] = useState('');
   return (
     <View>
       <Text style={styles.boldText}>Enter Menmonic</Text>

@@ -1,8 +1,8 @@
 import {ButtonProps, Image, Modal, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Fragment, useState} from 'react';
 
-import {ChannelDetails} from 'ldk-node/lib/classes/Bindings';
-import {Node} from 'ldk-node';
+import {ChannelDetails} from 'ldk-node-rn/lib/classes/Bindings';
+import {Node} from 'ldk-node-rn';
 import {AppColors, styles} from './styles';
 
 export const satsToMsats = (sats: number) => sats * 1000;

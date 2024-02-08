@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "ldk-node-rn": "^0.1.1",
+    "ldk-node-rn": "file:./../ldk-node-rn/",
     "react": "18.2.0",
     "react-native": "0.72.3",
     "react-native-crypto-js": "^1.0.0",

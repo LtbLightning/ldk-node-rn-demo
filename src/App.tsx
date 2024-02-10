@@ -1,4 +1,4 @@
-import {Builder, Config, Node} from 'ldk-node-rn';
+import {Builder, ChannelConfig, Config, Node} from 'ldk-node-rn';
 import {ChannelDetails, NetAddress} from 'ldk-node-rn/lib/classes/Bindings';
 import {Fragment, useState} from 'react';
 import {SafeAreaView, ScrollView, Text, View, ImageBackground} from 'react-native';
@@ -18,12 +18,13 @@ import {
 import RNFS from 'react-native-fs';
 import {MenuProvider} from 'react-native-popup-menu';
 import {styles} from './styles';
+import {addressToString} from 'ldk-node-rn/lib/utils';
 
 let docDir = RNFS.DocumentDirectoryPath + '/LDK_NODE/';
 export let host = '127.0.0.1';
 let port = 30000;
-let esploaraServer = `http://192.168.8.126:${port}`;
-// let esploaraServer = `https://mempool.space/testnet/api`;
+let esploaraServer = `http://192.168.1.203:${port}`;
+// esploaraServer = `https://mempool.space/testnet/api`;
 
 export const App = (): JSX.Element => {
   const [started, setStarted] = useState(false);
@@ -41,7 +42,7 @@ export const App = (): JSX.Element => {
     try {
       const storagePath = docDir;
       console.log('Storage Path: ', storagePath);
-      const config = await new Config().create(storagePath, 'regtest', new NetAddress(host, 2000));
+      const config = await new Config().create(storagePath, docDir + 'logs', 'regtest', [new NetAddress(host, 2000)]);
       const builder = await new Builder().fromConfig(config);
       await builder.setEsploraServer(esploaraServer);
 
@@ -52,8 +53,9 @@ export const App = (): JSX.Element => {
 
       /*=====Get/Set Node Info*/
       let nodeId = await nodeObj.nodeId();
-      let listeningAddr = await nodeObj.listeningAddress();
-      setNodeInfo({nodeId: nodeId.keyHex, listeningAddress: `${listeningAddr?.ip}:${listeningAddr?.port}`});
+      let listeningAddr = await nodeObj.listeningAddresses();
+      console.log('Listening Addresses android:', listeningAddr);
+      setNodeInfo({nodeId: nodeId.keyHex, listeningAddress: `${listeningAddr?.map(i => addressToString(i))}`});
     } catch (e) {
       console.log('Error in starting and build Node:', e);
     }
@@ -80,7 +82,6 @@ export const App = (): JSX.Element => {
   const openChannelCallback = async (params: ChannelParams) => {
     try {
       let addr = new NetAddress(params.ip, parseInt(params.port));
-      // await node?.connect(params.nodeId, addr, false);
       let opened = await node?.connectOpenChannel(
         params.nodeId,
         addr,
@@ -115,6 +116,31 @@ export const App = (): JSX.Element => {
       await node?.closeChannel(currentChannel?.channelId, currentChannel.counterpartyNodeId);
       await listChannels();
     }
+  };
+
+  const testChannelConfig = async () => {
+    console.log('Is Node Runnning:: ', await node?.isRunning());
+
+    let channelConfig = await new ChannelConfig().create();
+    console.log('acceptUnderpayingHtlcs:: ', await channelConfig.acceptUnderpayingHtlcs());
+    console.log('cltvExpiryDelta:: ', await channelConfig.cltvExpiryDelta());
+    console.log('forceCloseAvoidanceMaxFeeSatoshis:: ', await channelConfig.forceCloseAvoidanceMaxFeeSatoshis());
+    console.log('forwardingFeeBaseMsat:: ', await channelConfig.forwardingFeeBaseMsat());
+    console.log('forwardingFeeProportionalMillionths:: ', await channelConfig.forwardingFeeProportionalMillionths());
+
+    await channelConfig.setAcceptUnderpayingHtlcs(true);
+    await channelConfig.setCltvExpiryDelta(150);
+    await channelConfig.setForceCloseAvoidanceMaxFeeSatoshis(40800);
+    await channelConfig.setForwardingFeeBaseMsat(4000);
+    await channelConfig.setForwardingFeeProportionalMillionths(4000);
+    await channelConfig.setMaxDustHtlcExposureFromFeeRateMultiplier(4000);
+    await channelConfig.setMaxDustHtlcExposureFromFixedLimit(4000);
+
+    console.log('acceptUnderpayingHtlcs:: ', await channelConfig.acceptUnderpayingHtlcs());
+    console.log('cltvExpiryDelta:: ', await channelConfig.cltvExpiryDelta());
+    console.log('forceCloseAvoidanceMaxFeeSatoshis:: ', await channelConfig.forceCloseAvoidanceMaxFeeSatoshis());
+    console.log('forwardingFeeBaseMsat:: ', await channelConfig.forwardingFeeBaseMsat());
+    console.log('forwardingFeeProportionalMillionths:: ', await channelConfig.forwardingFeeProportionalMillionths());
   };
 
   return (

@@ -37,7 +37,7 @@ export const Header = () => {
 };
 
 export const MnemonicView = ({buildNodeCallback}: {buildNodeCallback: Function}) => {
-  const [mnemonic, setMnemonic] = useState('');
+  const [mnemonic, setMnemonic] = useState('awkward fox lawn senior flavor cook genuine cake endorse rare walk this');
   return (
     <View>
       <Text style={styles.boldText}>Enter Menmonic</Text>

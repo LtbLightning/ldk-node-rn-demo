@@ -1,4 +1,4 @@
-import {ButtonProps, Image, Modal, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {ButtonProps, Image, Modal, Platform, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Fragment, useState} from 'react';
 
 import {ChannelDetails} from 'ldk-node-rn/lib/classes/Bindings';
@@ -28,7 +28,7 @@ export const Button = ({loading, style, title, ...rest}: React.PropsWithChildren
 
 export const Header = () => {
   return (
-    <View style={{...styles.row, paddingHorizontal: 25, marginTop: -20}}>
+    <View style={{...styles.row, paddingHorizontal: 25, marginTop: Platform.OS === 'ios' ? -20 : 0}}>
       <Image source={require('./assets/reactnative_logo.png')} style={styles.img} resizeMode="contain" />
       <Text style={{fontWeight: '700', fontSize: 15, textAlign: 'center'}}>{'Demo App \n Ldk Node React Native'}</Text>
       <Image source={require('./assets/ldk_logo.png')} style={styles.img} />
@@ -37,7 +37,10 @@ export const Header = () => {
 };
 
 export const MnemonicView = ({buildNodeCallback}: {buildNodeCallback: Function}) => {
-  const [mnemonic, setMnemonic] = useState('awkward fox lawn senior flavor cook genuine cake endorse rare walk this');
+  const androidMnemonic = 'awkward fox lawn senior flavor cook genuine cake endorse rare walk this';
+  const iosMnemonic = 'absurd aware donate anxiety gather lottery advice document advice choice limb balance';
+
+  const [mnemonic, setMnemonic] = useState(Platform.OS === 'android' ? androidMnemonic : Platform.Version == '17.0' ? androidMnemonic : iosMnemonic);
   return (
     <View>
       <Text style={styles.boldText}>Enter Menmonic</Text>
@@ -125,7 +128,7 @@ export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<
               <Text>{`${channel.confirmations} / ${channel.confirmationsRequired}`}</Text>
             </View>
             <View style={styles.channelMainView}>
-              <Text style={{fontSize: 12, fontWeight: 'bold'}}>{channel.channelId.channelIdHex}</Text>
+              <Text style={{fontSize: 12, fontWeight: 'bold'}}>{channel.userChannelId.userChannelIdHex}</Text>
               <View>
                 <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                   <BoxRow title="Capacity" value={`${channel.channelValueSats}sats`} color={AppColors.blue} />

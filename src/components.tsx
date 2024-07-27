@@ -1,4 +1,4 @@
-import {ButtonProps, Image, Modal, Platform, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {ButtonProps, Image, Keyboard, Modal, Platform, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Fragment, useState} from 'react';
 
 import {ChannelDetails} from 'ldk-node-rn/lib/classes/Bindings';
@@ -132,7 +132,7 @@ export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<
               <View>
                 <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                   <BoxRow title="Capacity" value={`${channel.channelValueSats}sats`} color={AppColors.blue} />
-                  <BoxRow title="Local Balance" value={mSatsToSats(channel.balanceMsat)} color={AppColors.green} />
+                  <BoxRow title="Local Balance" value={mSatsToSats(channel.outboundCapacityMsat)} color={AppColors.green} />
                 </View>
                 <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                   <BoxRow title="Inbound" value={mSatsToSats(channel.inboundCapacityMsat)} color={AppColors.green} />
@@ -181,5 +181,54 @@ export const BoxRow = ({title, value, color}: {title: string; value: any; color?
         {value}
       </Text>
     </View>
+  );
+};
+
+export const ReceiveModal = ({visible, onClose, onReceive}) => {
+  const [amount, setAmount] = useState('');
+  const handleSubmit = async () => {
+    setAmount('');
+  };
+  const buttonText = amount.length === 0 ? 'Close' : 'Receive';
+
+  return (
+    <Modal transparent={true} visible={visible} onRequestClose={onClose}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        }}>
+        <View style={styles.receiveModal}>
+          <Text style={styles.title}>Receive via Lightning</Text>
+          <TextInput style={styles.input} placeholder="Amount in sats" keyboardType="numeric" value={amount} onChangeText={setAmount} />
+          <Button
+            style={styles.fullWidthBtn}
+            title={buttonText}
+            onPress={() => {
+              Keyboard.dismiss();
+              handleSubmit() && onReceive(amount);
+            }}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+export const InvoiceModal = ({visible, onClose, invoice}) => {
+  return (
+    <Modal transparent={true} visible={visible} onRequestClose={onClose}>
+      <View style={styles.modalContainer}>
+        <View style={styles.invoiceModal}>
+          <Text style={styles.title}>Invoice</Text>
+          <Text selectable style={[styles.invoiceText, {textAlign: 'left'}]}>
+            {invoice}
+          </Text>
+          <Button style={styles.fullWidthBtn} title="Close" onPress={onClose} />
+        </View>
+      </View>
+    </Modal>
   );
 };

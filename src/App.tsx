@@ -9,9 +9,11 @@ import {
   ChannelsListView,
   Header,
   IconButton,
+  InvoiceModal,
   MnemonicView,
   OpenChannelModal,
   PaymentModal,
+  ReceiveModal,
   satsToMsats,
 } from './components';
 
@@ -21,6 +23,8 @@ import {styles} from './styles';
 import {addressToString} from 'ldk-node-rn/lib/utils';
 
 let docDir = RNFS.DocumentDirectoryPath + '/NEW_LDK_NODE/' + `${Platform.Version}/`;
+console.log('Platform Version=====>', `${Platform.Version}`);
+
 let host;
 let port = 30000; // Port for Esplora server
 let esploaraServer;
@@ -31,10 +35,12 @@ if (Platform.OS === 'android') {
   host = '0.0.0.0';
   // host = '10.0.1.1';
 } else if (Platform.OS === 'ios') {
-  host = '127.0.0.1';
+  // host = '127.0.0.1';
+  host = '0.0.0.0';
 }
 
 esploaraServer = `http://${host}:${port}`;
+// esploaraServer = `https://mutinynet.ltbl.io/api`;
 
 export const App = (): JSX.Element => {
   const [started, setStarted] = useState(false);
@@ -46,11 +52,16 @@ export const App = (): JSX.Element => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPaymentIndex, setSelectedPaymentIndex] = useState(0);
   const [channels, setChannels] = useState<Array<ChannelDetails>>();
+  const [showReceiveModal, setShowReceiveModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [invoice, setInvoice] = useState('');
+  const [receiveAmount, setReceiveAmount] = useState('');
 
   const buildNode = async (mnemonic: string) => {
     try {
       const storagePath = docDir;
       const ldkPort = Platform.OS === 'ios' ? (Platform.Version == '17.0' ? 2000 : 2001) : 8081;
+      // const ldkPort = 9735;
       const config = await new Config().create(storagePath, docDir + 'logs', 'regtest', [new NetAddress(host, ldkPort)]);
       const builder = await new Builder().fromConfig(config);
       await builder.setEsploraServer(esploaraServer);
@@ -65,13 +76,16 @@ export const App = (): JSX.Element => {
       setStarted(started);
 
       if (started) {
+        console.log('Node started successfully');
       } else {
+        console.log('Node failed to start');
       }
 
       /*=====Get/Set Node Info*/
       const nodeId = await nodeObj.nodeId();
       const listeningAddr = await nodeObj.listeningAddresses();
       setNodeInfo({nodeId: nodeId.keyHex, listeningAddress: `${listeningAddr?.map(i => addressToString(i))}`});
+      console.log('Node Info:', {nodeId: nodeId.keyHex, listeningAddress: `${listeningAddr?.map(i => addressToString(i))}`});
     } catch (e) {
       console.error('Error in starting and building Node:', e);
       if (e.response) {
@@ -86,15 +100,22 @@ export const App = (): JSX.Element => {
   const onChainBalance = async () => {
     try {
       await node?.syncWallets();
-      setBalance(await node?.totalOnchainBalanceSats());
-    } catch (e) {}
+      const balance = await node?.totalOnchainBalanceSats();
+      setBalance(balance);
+      console.log('On-chain balance:', balance);
+    } catch (e) {
+      console.error('Error getting on-chain balance:', e);
+    }
   };
 
   const newOnchainAddress = async () => {
     try {
       let addr = await node?.newOnchainAddress();
       setOnChainAddress(addr?.addressHex);
-    } catch (e) {}
+      console.log('New on-chain address:', addr?.addressHex);
+    } catch (e) {
+      console.error('Error generating new on-chain address:', e);
+    }
   };
 
   const openChannelCallback = async (params: ChannelParams) => {
@@ -110,15 +131,23 @@ export const App = (): JSX.Element => {
         true,
       );
       setShowChannelModal(false);
-    } catch (e) {}
+      console.log('Channel opened:', opened);
+    } catch (e) {
+      console.error('Error opening channel:', e);
+    }
   };
 
   const listChannels = async () => {
     try {
       const list = await node?.listChannels();
       setChannels(list);
-      list.forEach(channel => {});
-    } catch (e) {}
+      console.log('Channels:', list);
+      list.forEach(channel => {
+        console.log('Channel details:', channel);
+      });
+    } catch (e) {
+      console.error('Error listing channels:', e);
+    }
   };
 
   const handleMenuItemCallback = async (index: number, channelIndex: number) => {
@@ -130,9 +159,26 @@ export const App = (): JSX.Element => {
 
       try {
         const data = await node?.closeChannel({channelIdHex: currentChannel?.userChannelId.userChannelIdHex}, currentChannel?.counterpartyNodeId);
-      } catch (error) {}
+        console.log('Channel closed:', data);
+      } catch (error) {
+        console.error('Error closing channel:', error);
+      }
 
       await listChannels();
+    }
+  };
+  const handleReceive = async (amount: string) => {
+    if (node && amount) {
+      try {
+        const invoice = await node.receivePayment(satsToMsats(parseInt(amount, 10)), 'Test Memo', 150);
+        setInvoice(JSON.stringify(invoice).replace(/"/g, ''));
+        setShowReceiveModal(false);
+        setReceiveAmount('');
+        setShowInvoiceModal(true);
+        console.log('Invoice generated:', invoice);
+      } catch (e) {
+        console.error('Error receiving payment:', e);
+      }
     }
   };
 
@@ -146,6 +192,7 @@ export const App = (): JSX.Element => {
     await channelConfig.setForwardingFeeProportionalMillionths(4000);
     await channelConfig.setMaxDustHtlcExposureFromFeeRateMultiplier(4000);
     await channelConfig.setMaxDustHtlcExposureFromFixedLimit(4000);
+    console.log('Channel config set:', channelConfig);
   };
 
   return (
@@ -167,12 +214,37 @@ export const App = (): JSX.Element => {
 
                 <Button title="On Chain Balance" onPress={onChainBalance} />
                 <Button title="New Funding Address" onPress={newOnchainAddress} />
+                <Button
+                  title="Receive via Lightning"
+                  onPress={() => {
+                    // Set the amount to an empty string when opening the modal
+                    setReceiveAmount('');
+                    setShowReceiveModal(true);
+                  }}
+                />
+
                 <Button title="List Channels" onPress={listChannels} />
                 <View style={styles.row}>
                   <Text style={styles.boldNormal}>Channels</Text>
                   <IconButton onPress={() => setShowChannelModal(true)} title=" + Channel" />
                 </View>
                 <ChannelsListView channels={channels} menuItemCallback={handleMenuItemCallback} />
+                <ReceiveModal
+                  visible={showReceiveModal}
+                  amount={receiveAmount} // Pass the amount to ReceiveModal
+                  onClose={() => {
+                    setReceiveAmount(''); // Reset the amount when the modal is closed
+                    setShowReceiveModal(false);
+                    console.log('Receive modal closed');
+                  }}
+                  onReceive={amount => {
+                    handleReceive(amount); // Pass the amount to handleReceive
+                    setShowReceiveModal(false); // Close the modal
+                    console.log('Receive modal amount received:', amount);
+                  }}
+                />
+
+                <InvoiceModal visible={showInvoiceModal} onClose={() => setShowInvoiceModal(false)} invoice={invoice} />
               </ScrollView>
             )}
           </View>

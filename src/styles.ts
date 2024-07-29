@@ -51,7 +51,7 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 0,
-    textAlignVertical: "top"
+    textAlignVertical: 'top',
   },
   btn: {
     backgroundColor: AppColors.blue,
@@ -143,4 +143,59 @@ export const styles = StyleSheet.create({
   },
   boldNormal: {fontWeight: '700', fontSize: 12},
   channelButton: {marginRight: 20, paddingHorizontal: 20},
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'black',
+  },
+  input: {
+    width: '100%',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  invoiceText: {
+    marginVertical: 20,
+    textAlign: 'center',
+  },
+  invoiceModal: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    width: '90%',
+  },
+  receiveModal: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    width: '90%',
+  },
 });

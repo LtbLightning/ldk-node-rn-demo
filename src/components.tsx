@@ -1,4 +1,4 @@
-import {ButtonProps, Image, Modal, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {ButtonProps, Image, Keyboard, Modal, Platform, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Fragment, useState} from 'react';
 
 import {ChannelDetails} from 'ldk-node-rn/lib/classes/Bindings';
@@ -28,7 +28,7 @@ export const Button = ({loading, style, title, ...rest}: React.PropsWithChildren
 
 export const Header = () => {
   return (
-    <View style={{...styles.row, paddingHorizontal: 25, marginTop: -20}}>
+    <View style={{...styles.row, paddingHorizontal: 25, marginTop: Platform.OS === 'ios' ? -20 : 0}}>
       <Image source={require('./assets/reactnative_logo.png')} style={styles.img} resizeMode="contain" />
       <Text style={{fontWeight: '700', fontSize: 15, textAlign: 'center'}}>{'Demo App \n Ldk Node React Native'}</Text>
       <Image source={require('./assets/ldk_logo.png')} style={styles.img} />
@@ -37,7 +37,10 @@ export const Header = () => {
 };
 
 export const MnemonicView = ({buildNodeCallback}: {buildNodeCallback: Function}) => {
-  const [mnemonic, setMnemonic] = useState('awkward fox lawn senior flavor cook genuine cake endorse rare walk this');
+  const androidMnemonic = 'awkward fox lawn senior flavor cook genuine cake endorse rare walk this';
+  const iosMnemonic = 'absurd aware donate anxiety gather lottery advice document advice choice limb balance';
+
+  const [mnemonic, setMnemonic] = useState(Platform.OS === 'android' ? androidMnemonic : Platform.Version == '17.0' ? androidMnemonic : iosMnemonic);
   return (
     <View>
       <Text style={styles.boldText}>Enter Menmonic</Text>
@@ -125,11 +128,11 @@ export const ChannelsListView = ({channels, menuItemCallback}: {channels: Array<
               <Text>{`${channel.confirmations} / ${channel.confirmationsRequired}`}</Text>
             </View>
             <View style={styles.channelMainView}>
-              <Text style={{fontSize: 12, fontWeight: 'bold'}}>{channel.channelId.channelIdHex}</Text>
+              <Text style={{fontSize: 12, fontWeight: 'bold'}}>{channel.userChannelId.userChannelIdHex}</Text>
               <View>
                 <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                   <BoxRow title="Capacity" value={`${channel.channelValueSats}sats`} color={AppColors.blue} />
-                  <BoxRow title="Local Balance" value={mSatsToSats(channel.balanceMsat)} color={AppColors.green} />
+                  <BoxRow title="Local Balance" value={mSatsToSats(channel.outboundCapacityMsat)} color={AppColors.green} />
                 </View>
                 <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                   <BoxRow title="Inbound" value={mSatsToSats(channel.inboundCapacityMsat)} color={AppColors.green} />
@@ -154,10 +157,15 @@ export const PaymentModal = ({index, hide, node}: {index: number; hide: Function
   const [response, setResponse] = useState<any>();
   const isSend = index == 1;
   const handleSubmit = async () => {
-    setValue('');
-    let res = isSend ? await node?.sendPayment(value) : await node?.receivePayment(satsToMsats(parseInt(value)), 'Test Memo', 150);
-    setResponse(JSON.stringify(res).replaceAll('"', ''));
-    isSend && hide();
+    try {
+      setValue('');
+      let res = isSend ? await node?.sendPayment(value) : await node?.receivePayment(satsToMsats(parseInt(value)), 'test', 3600);
+      console.log(res);
+      setResponse(JSON.stringify(res).replaceAll('"', ''));
+      isSend && hide();
+    } catch (error) {
+      console.log('---Send Payment--- ', error);
+    }
   };
   return (
     <ModalView>
@@ -178,5 +186,54 @@ export const BoxRow = ({title, value, color}: {title: string; value: any; color?
         {value}
       </Text>
     </View>
+  );
+};
+
+export const ReceiveModal = ({visible, onClose, onReceive}) => {
+  const [amount, setAmount] = useState('');
+  const handleSubmit = async () => {
+    setAmount('');
+  };
+  const buttonText = amount.length === 0 ? 'Close' : 'Receive';
+
+  return (
+    <Modal transparent={true} visible={visible} onRequestClose={onClose}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        }}>
+        <View style={styles.receiveModal}>
+          <Text style={styles.title}>Receive via Lightning</Text>
+          <TextInput style={styles.input} placeholder="Amount in sats" keyboardType="numeric" value={amount} onChangeText={setAmount} />
+          <Button
+            style={styles.fullWidthBtn}
+            title={buttonText}
+            onPress={() => {
+              Keyboard.dismiss();
+              handleSubmit() && onReceive(amount);
+            }}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+export const InvoiceModal = ({visible, onClose, invoice}) => {
+  return (
+    <Modal transparent={true} visible={visible} onRequestClose={onClose}>
+      <View style={styles.modalContainer}>
+        <View style={styles.invoiceModal}>
+          <Text style={styles.title}>Invoice</Text>
+          <Text selectable style={[styles.invoiceText, {textAlign: 'left'}]}>
+            {invoice}
+          </Text>
+          <Button style={styles.fullWidthBtn} title="Close" onPress={onClose} />
+        </View>
+      </View>
+    </Modal>
   );
 };

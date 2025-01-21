@@ -71,48 +71,62 @@ export const App = (): JSX.Element => {
     try {
       const storagePath = docDir;
       console.log('storagePath====>', storagePath);
+      // const ldkPort =
+      //   Platform.OS === 'ios'
+      //     ? Platform.Version == '17.0'
+      //       ? 2000
+      //       : 2001
+      //     : 8081;
+
       const ldkPort =
-        Platform.OS === 'ios'
-          ? Platform.Version == '17.0'
-            ? 2000
-            : 2001
-          : 8081;
-      // const ldkPort = 9735;
+        Platform.OS === 'ios' && parseFloat(Platform.Version) >= 17
+          ? 2000
+          : 2001;
+
+      // Initialize the node config
       const config = await new Config().create(
         storagePath,
         docDir + 'logs',
-        'signet',
+        'signet', // Ensure it's set to 'signet'
         [new NetAddress(host, ldkPort)],
       );
-      // const config = await new Config().create(storagePath, docDir + 'logs', 'bitcoin', [new NetAddress(host, 9735)]);
-      // console.log('---config--- ', config);
       const builder = await new Builder().fromConfig(config);
+
+      // Set network to signet, esplora server, and RGS source
       await builder.setNetwork('signet');
       await builder.setEsploraServer(esploaraServer);
-      // await builder.setGossipSourceRgs('https://scorer.mutinywallet.com/v1/rgs/snapshot/');
-      const key = await builder.setEntropyBip39Mnemonic(mnemonic);
-      console.log('---Key--- ', key);
-      // await builder.setLiquiditySourceLsps2('44.219.111.31:39735', '02b70a0161e9db0b1d8d71ad49ad54238e34c60e3f0cdbae66c9b9d8732088604e', 'JZWN9YLW');
-      await builder.setLiquiditySourceLsps2(
-        '44.219.111.31:39735',
-        '0371d6fd7d75de2d0372d03ea00e8bacdacb50c27d0eaea0a76a0622eff1f5ef2b',
-        'JZWN9YLW',
+      await builder.setGossipSourceRgs('https://mutinynet.ltbl.io/snapshot');
+
+      // Set mnemonic and liquidity source for LSPS2
+      await builder.setEntropyBip39Mnemonic(mnemonic);
+
+      // Make sure this is the correct LSP node address, pubkey, and token
+      const lspNodeAddress = '44.219.111.31:39735'; // Update this if necessary
+      const lspNodePubkey =
+        '0371d6fd7d75de2d0372d03ea00e8bacdacb50c27d0eaea0a76a0622eff1f5ef2b';
+      const lspToken = 'JZWN9YLW';
+
+      // Try setting LSPS2 with correct parameters
+      const setLsps2Response = await builder.setLiquiditySourceLsps2(
+        lspNodeAddress,
+        lspNodePubkey,
+        lspToken,
       );
+      console.log('LSPS2 response:', setLsps2Response);
 
       const nodeObj: Node = await builder.build();
-
       setNode(nodeObj);
 
+      // Start the node
       const started = await nodeObj.start();
       setStarted(started);
-
       if (started) {
         console.log('Node started successfully');
       } else {
         console.log('Node failed to start');
       }
 
-      /*=====Get/Set Node Info*/
+      // Get node info
       const nodeId = await nodeObj.nodeId();
       const listeningAddr = await nodeObj.listeningAddresses();
       setNodeInfo({
@@ -125,12 +139,6 @@ export const App = (): JSX.Element => {
       });
     } catch (e) {
       console.error('Error in starting and building Node:', e);
-      if (e.response) {
-        console.error('Response error:', e.response.data);
-      }
-      if (e.request) {
-        console.error('Request error:', e.request);
-      }
     }
   };
 
@@ -238,17 +246,18 @@ export const App = (): JSX.Element => {
         const invoice = await node.receiveViaJitChannel(
           satsToMsats(parseInt(amount, 10)),
           'test',
-          3600,
+          3600, // expires in 1 hour
         );
-        // const invoice = await node.receiveViaJitChannel(parseInt(amount), 'test', 3600);
         setInvoice(JSON.stringify(invoice).replace(/"/g, ''));
         setShowReceiveModal(false);
         setReceiveAmount('');
         setShowInvoiceModal(true);
         console.log('Invoice generated:', invoice);
       } catch (e) {
-        console.error('Error receiving payment:', e);
+        console.error('Error receiving payment via JIT Channel:', e);
       }
+    } else {
+      console.warn('Node or amount is not available for receiving payment');
     }
   };
 

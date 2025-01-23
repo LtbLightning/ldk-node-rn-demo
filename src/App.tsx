@@ -1,7 +1,14 @@
 import {Builder, ChannelConfig, Config, Node} from 'ldk-node-rn';
 import {ChannelDetails, NetAddress} from 'ldk-node-rn/lib/classes/Bindings';
 import {Fragment, useEffect, useState} from 'react';
-import {SafeAreaView, ScrollView, Text, View, ImageBackground, Platform} from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  Text,
+  View,
+  ImageBackground,
+  Platform,
+} from 'react-native';
 import {
   BoxRow,
   Button,
@@ -22,7 +29,8 @@ import {MenuProvider} from 'react-native-popup-menu';
 import {styles} from './styles';
 import {addressToString} from 'ldk-node-rn/lib/utils';
 
-let docDir = RNFS.DocumentDirectoryPath + '/NEW_LDK_NODE/' + `${Platform.Version}/`;
+let docDir =
+  RNFS.DocumentDirectoryPath + '/NEW_LDK_NODE/' + `${Platform.Version}/`;
 console.log('Platform Version=====>', `${Platform.Version}`);
 
 let host;
@@ -63,46 +71,74 @@ export const App = (): JSX.Element => {
     try {
       const storagePath = docDir;
       console.log('storagePath====>', storagePath);
-      const ldkPort = Platform.OS === 'ios' ? (Platform.Version == '17.0' ? 2000 : 2001) : 8081;
-      // const ldkPort = 9735;
-      const config = await new Config().create(storagePath, docDir + 'logs', 'signet', [new NetAddress(host, ldkPort)]);
-      // const config = await new Config().create(storagePath, docDir + 'logs', 'bitcoin', [new NetAddress(host, 9735)]);
-      // console.log('---config--- ', config);
+      // const ldkPort =
+      //   Platform.OS === 'ios'
+      //     ? Platform.Version == '17.0'
+      //       ? 2000
+      //       : 2001
+      //     : 8081;
+
+      const ldkPort =
+        Platform.OS === 'ios' && parseFloat(Platform.Version) >= 17
+          ? 2000
+          : 2001;
+
+      // Initialize the node config
+      const config = await new Config().create(
+        storagePath,
+        docDir + 'logs',
+        'signet', // Ensure it's set to 'signet'
+        [new NetAddress(host, ldkPort)],
+      );
       const builder = await new Builder().fromConfig(config);
+
+      // Set network to signet, esplora server, and RGS source
       await builder.setNetwork('signet');
       await builder.setEsploraServer(esploaraServer);
-      // await builder.setGossipSourceRgs('https://scorer.mutinywallet.com/v1/rgs/snapshot/');
-      const key = await builder.setEntropyBip39Mnemonic(mnemonic);
-      console.log('---Key--- ', key);
-      // await builder.setLiquiditySourceLsps2('44.219.111.31:39735', '02b70a0161e9db0b1d8d71ad49ad54238e34c60e3f0cdbae66c9b9d8732088604e', 'JZWN9YLW');
-      await builder.setLiquiditySourceLsps2('44.219.111.31:39735', '0371d6fd7d75de2d0372d03ea00e8bacdacb50c27d0eaea0a76a0622eff1f5ef2b', 'JZWN9YLW');
+      await builder.setGossipSourceRgs('https://mutinynet.ltbl.io/snapshot');
+
+      // Set mnemonic and liquidity source for LSPS2
+      await builder.setEntropyBip39Mnemonic(mnemonic);
+
+      // Make sure this is the correct LSP node address, pubkey, and token
+      const lspNodeAddress = '44.219.111.31:39735'; // Update this if necessary
+      const lspNodePubkey =
+        '0371d6fd7d75de2d0372d03ea00e8bacdacb50c27d0eaea0a76a0622eff1f5ef2b';
+      const lspToken = 'JZWN9YLW';
+
+      // Try setting LSPS2 with correct parameters
+      const setLsps2Response = await builder.setLiquiditySourceLsps2(
+        lspNodeAddress,
+        lspNodePubkey,
+        lspToken,
+      );
+      console.log('LSPS2 response:', setLsps2Response);
 
       const nodeObj: Node = await builder.build();
-
       setNode(nodeObj);
 
+      // Start the node
       const started = await nodeObj.start();
       setStarted(started);
-
       if (started) {
         console.log('Node started successfully');
       } else {
         console.log('Node failed to start');
       }
 
-      /*=====Get/Set Node Info*/
+      // Get node info
       const nodeId = await nodeObj.nodeId();
       const listeningAddr = await nodeObj.listeningAddresses();
-      setNodeInfo({nodeId: nodeId.keyHex, listeningAddress: `${listeningAddr?.map(i => addressToString(i))}`});
-      console.log('Node Info:', {nodeId: nodeId.keyHex, listeningAddress: `${listeningAddr?.map(i => addressToString(i))}`});
+      setNodeInfo({
+        nodeId: nodeId.keyHex,
+        listeningAddress: `${listeningAddr?.map(i => addressToString(i))}`,
+      });
+      console.log('Node Info:', {
+        nodeId: nodeId.keyHex,
+        listeningAddress: `${listeningAddr?.map(i => addressToString(i))}`,
+      });
     } catch (e) {
       console.error('Error in starting and building Node:', e);
-      if (e.response) {
-        console.error('Response error:', e.response.data);
-      }
-      if (e.request) {
-        console.error('Request error:', e.request);
-      }
     }
   };
 
@@ -161,7 +197,10 @@ export const App = (): JSX.Element => {
     }
   };
 
-  const handleMenuItemCallback = async (index: number, channelIndex: number) => {
+  const handleMenuItemCallback = async (
+    index: number,
+    channelIndex: number,
+  ) => {
     setSelectedPaymentIndex(index);
     if (index > 0) {
       setShowPaymentModal(true);
@@ -169,7 +208,10 @@ export const App = (): JSX.Element => {
       let currentChannel = channels[channelIndex];
 
       try {
-        const data = await node?.closeChannel({channelIdHex: currentChannel?.userChannelId.userChannelIdHex}, currentChannel?.counterpartyNodeId);
+        const data = await node?.closeChannel(
+          {channelIdHex: currentChannel?.userChannelId.userChannelIdHex},
+          currentChannel?.counterpartyNodeId,
+        );
         console.log('Channel closed:', data);
       } catch (error) {
         console.error('Error closing channel:', error);
@@ -182,7 +224,11 @@ export const App = (): JSX.Element => {
   const handleReceive = async (amount: string) => {
     if (node && amount) {
       try {
-        const invoice = await node.receivePayment(satsToMsats(parseInt(amount, 10)), 'Test Memo', 150);
+        const invoice = await node.receivePayment(
+          satsToMsats(parseInt(amount, 10)),
+          'Test Memo',
+          150,
+        );
         setInvoice(JSON.stringify(invoice).replace(/"/g, ''));
         setShowReceiveModal(false);
         setReceiveAmount('');
@@ -197,16 +243,21 @@ export const App = (): JSX.Element => {
   const handleReceiveBolt11Payment = async (amount: string) => {
     if (node && amount) {
       try {
-        const invoice = await node.receiveViaJitChannel(satsToMsats(parseInt(amount, 10)), 'test', 3600);
-        // const invoice = await node.receiveViaJitChannel(parseInt(amount), 'test', 3600);
+        const invoice = await node.receiveViaJitChannel(
+          satsToMsats(parseInt(amount, 10)),
+          'test',
+          3600, // expires in 1 hour
+        );
         setInvoice(JSON.stringify(invoice).replace(/"/g, ''));
         setShowReceiveModal(false);
         setReceiveAmount('');
         setShowInvoiceModal(true);
         console.log('Invoice generated:', invoice);
       } catch (e) {
-        console.error('Error receiving payment:', e);
+        console.error('Error receiving payment via JIT Channel:', e);
       }
+    } else {
+      console.warn('Node or amount is not available for receiving payment');
     }
   };
 
@@ -224,7 +275,9 @@ export const App = (): JSX.Element => {
   };
 
   return (
-    <ImageBackground source={require('./assets/background.png')} style={styles.backgroundImage}>
+    <ImageBackground
+      source={require('./assets/background.png')}
+      style={styles.backgroundImage}>
       <MenuProvider>
         <SafeAreaView style={styles.safeArea}>
           <Header />
@@ -234,14 +287,22 @@ export const App = (): JSX.Element => {
             ) : (
               <ScrollView style={{minHeight: '100%'}}>
                 <View style={styles.responseBox}>
-                  <Text style={styles.balanceText}>{balance / 100000000} BTC</Text>
-                  <BoxRow title="Listening Address" value={nodeInfo.listeningAddress} />
+                  <Text style={styles.balanceText}>
+                    {balance / 100000000} BTC
+                  </Text>
+                  <BoxRow
+                    title="Listening Address"
+                    value={nodeInfo.listeningAddress}
+                  />
                   <BoxRow title="Node ID" value={nodeInfo.nodeId} />
                   <BoxRow title="Funding Address" value={onChainAddress} />
                 </View>
 
                 <Button title="On Chain Balance" onPress={onChainBalance} />
-                <Button title="New Funding Address" onPress={newOnchainAddress} />
+                <Button
+                  title="New Funding Address"
+                  onPress={newOnchainAddress}
+                />
                 <Button
                   title="Receive via Lightning"
                   onPress={() => {
@@ -254,9 +315,15 @@ export const App = (): JSX.Element => {
                 <Button title="List Channels" onPress={listChannels} />
                 <View style={styles.row}>
                   <Text style={styles.boldNormal}>Channels</Text>
-                  <IconButton onPress={() => setShowChannelModal(true)} title=" + Channel" />
+                  <IconButton
+                    onPress={() => setShowChannelModal(true)}
+                    title=" + Channel"
+                  />
                 </View>
-                <ChannelsListView channels={channels} menuItemCallback={handleMenuItemCallback} />
+                <ChannelsListView
+                  channels={channels}
+                  menuItemCallback={handleMenuItemCallback}
+                />
                 <ReceiveModal
                   visible={showReceiveModal}
                   amount={receiveAmount} // Pass the amount to ReceiveModal
@@ -273,12 +340,27 @@ export const App = (): JSX.Element => {
                   }}
                 />
 
-                <InvoiceModal visible={showInvoiceModal} onClose={() => setShowInvoiceModal(false)} invoice={invoice} />
+                <InvoiceModal
+                  visible={showInvoiceModal}
+                  onClose={() => setShowInvoiceModal(false)}
+                  invoice={invoice}
+                />
               </ScrollView>
             )}
           </View>
-          {showChannelModal && <OpenChannelModal openChannelCallback={openChannelCallback} cancelCallback={() => setShowChannelModal(false)} />}
-          {showPaymentModal && <PaymentModal index={selectedPaymentIndex} hide={() => setShowPaymentModal(false)} node={node} />}
+          {showChannelModal && (
+            <OpenChannelModal
+              openChannelCallback={openChannelCallback}
+              cancelCallback={() => setShowChannelModal(false)}
+            />
+          )}
+          {showPaymentModal && (
+            <PaymentModal
+              index={selectedPaymentIndex}
+              hide={() => setShowPaymentModal(false)}
+              node={node}
+            />
+          )}
         </SafeAreaView>
       </MenuProvider>
     </ImageBackground>

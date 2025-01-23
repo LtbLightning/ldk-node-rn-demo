@@ -7,7 +7,7 @@ PODS:
   - hermes-engine (0.75.2):
     - hermes-engine/Pre-built (= 0.75.2)
   - hermes-engine/Pre-built (0.75.2)
-  - ldk-node-rn (0.3.0):
+  - ldk-node-rn (0.3.1):
     - React
   - RCT-Folly (2024.01.01.00):
     - boost
@@ -1714,7 +1714,7 @@ SPEC CHECKSUMS:
   fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
   glog: 69ef571f3de08433d766d614c73a9838a06bf7eb
   hermes-engine: 3b6e0717ca847e2fc90a201e59db36caf04dee88
-  ldk-node-rn: 4cc52d1aa87df212e73d6bd4f046e7b98bb58eb4
+  ldk-node-rn: acd4ccd2d53b7c80406b646df7fb41b50ec138a9
   RCT-Folly: 4464f4d875961fce86008d45f4ecf6cef6de0740
   RCTDeprecation: 34cbf122b623037ea9facad2e92e53434c5c7422
   RCTRequired: 24c446d7bcd0f517d516b6265d8df04dc3eb1219
@@ -1774,6 +1774,6 @@ SPEC CHECKSUMS:
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
 
-PODFILE CHECKSUM: 35f7144e11be7972af3d3242d5999da7b03f7540
+PODFILE CHECKSUM: c2685337687ef9560b9c32b619a4a2da1ab61bfb
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

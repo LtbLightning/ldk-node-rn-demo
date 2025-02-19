@@ -50,8 +50,8 @@ if (Platform.OS === 'android') {
 }
 
 // esploaraServer = `http://${host}:${port}`;
-esploaraServer = `https://mutinynet.ltbl.io/api`;
-// esploaraServer = `https://mutinynet.com/api/`;
+// esploaraServer = `https://mutinynet.ltbl.io/api`;
+esploaraServer = `https://mutinynet.com/api/`;
 export const App = (): JSX.Element => {
   const [started, setStarted] = useState(false);
   const [node, setNode] = useState<Node>();
